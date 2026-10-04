@@ -279,6 +279,50 @@
     });
   });
 
+  // Keep the active navigation item aligned with the section in view.
+  var sectionNavLinks = Array.from(
+    document.querySelectorAll('.navbar-nav .nav-link[href^="#"]'),
+  );
+  var sectionNavTargets = sectionNavLinks
+    .map(function (link) {
+      return document.getElementById(link.getAttribute("href").slice(1));
+    })
+    .filter(Boolean);
+
+  function updateActiveSectionLink() {
+    var currentSection = sectionNavTargets[0];
+    var marker = 150;
+
+    sectionNavTargets.forEach(function (section) {
+      if (section.getBoundingClientRect().top <= marker) {
+        currentSection = section;
+      }
+    });
+
+    sectionNavLinks.forEach(function (link) {
+      link.classList.toggle(
+        "active",
+        currentSection && link.getAttribute("href") === "#" + currentSection.id,
+      );
+    });
+  }
+
+  var activeSectionUpdatePending = false;
+  window.addEventListener(
+    "scroll",
+    function () {
+      if (activeSectionUpdatePending) return;
+      activeSectionUpdatePending = true;
+      window.requestAnimationFrame(function () {
+        updateActiveSectionLink();
+        activeSectionUpdatePending = false;
+      });
+    },
+    { passive: true },
+  );
+  window.addEventListener("resize", updateActiveSectionLink);
+  updateActiveSectionLink();
+
   // Slider
   $(document).ready(function () {
     var owl = $(".header .owl-carousel");
@@ -296,7 +340,10 @@
       loop: true,
       margin: 0,
       autoplay: true,
-      smartSpeed: 500,
+      autoplayTimeout: 3500,
+      autoplaySpeed: 600,
+      autoplayHoverPause: false,
+      smartSpeed: 600,
       animateOut: "fadeOut",
     });
     owl.on("changed.owl.carousel", function (event) {

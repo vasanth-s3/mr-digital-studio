@@ -992,6 +992,34 @@ td {
     width: 100%;
     background-size: cover;
     background-position: center;
+    overflow: hidden;
+}
+.slider-fade .hero-image {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    transform: scale(1);
+    will-change: transform;
+}
+.slider-fade .owl-item.active:nth-child(odd) .hero-image {
+    animation: hero-zoom-in 3.5s ease-in-out both;
+}
+.slider-fade .owl-item.active:nth-child(even) .hero-image {
+    animation: hero-zoom-out 3.5s ease-in-out both;
+}
+@keyframes hero-zoom-in {
+    from { transform: scale(1); }
+    to { transform: scale(1.12); }
+}
+@keyframes hero-zoom-out {
+    from { transform: scale(1.12); }
+    to { transform: scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .slider-fade .owl-item.active .hero-image {
+        animation: none;
+        transform: none;
+    }
 }
 .slider .item .caption,
 .slider-fade .item .caption {
