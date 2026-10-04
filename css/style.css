@@ -2560,6 +2560,13 @@ a.underline-text:hover {
     width: 170px;
     margin-bottom: 10px;
 }
+.footer-section .brand h2 {
+    color: #fff;
+    font-size: 24px;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+}
 .footer-section p b {
     color: #f96f00;
     font-family: 'Barlow Condensed', sans-serif;
