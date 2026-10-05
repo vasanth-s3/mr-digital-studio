@@ -336,12 +336,15 @@
       items: 1,
       loop: true,
       margin: 0,
+      touchDrag: true,
+      mouseDrag: true,
+      pullDrag: false,
+      freeDrag: false,
       autoplay: true,
       autoplayTimeout: 3500,
       autoplaySpeed: 600,
       autoplayHoverPause: false,
       smartSpeed: 600,
-      animateOut: "fadeOut",
     });
     owl.on("changed.owl.carousel", function (event) {
       var item = event.item.index - 2; // Position of the current item

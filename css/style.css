@@ -35,6 +35,7 @@ body {
     -webkit-font-smoothing: antialiased;
     -moz-font-smoothing: antialiased;
     font-smoothing: antialiased;
+    overflow-x: hidden;
 }
 body {
     font-family: 'Didact Gothic', sans-serif;
@@ -1024,6 +1025,80 @@ td {
 .slider .item .caption,
 .slider-fade .item .caption {
     z-index: 9;
+}
+@media screen and (max-width: 767px) {
+    #home.header {
+        width: 100%;
+        max-width: 100%;
+        margin-left: 0;
+    }
+    #home .owl-carousel,
+    #home .owl-stage-outer {
+        width: 100%;
+        max-width: 100%;
+    }
+    #home .owl-stage-outer {
+        overflow: hidden;
+    }
+    .header {
+        height: auto;
+        min-height: 0;
+        background: #111;
+    }
+    .header .owl-carousel,
+    .header .owl-stage-outer,
+    .header .owl-stage,
+    .header .owl-item {
+        background-color: #111;
+    }
+    .slider-fade .owl-item {
+        height: auto;
+        min-height: 0;
+    }
+    .slider-fade .item {
+        position: relative;
+        height: auto;
+        min-height: 0;
+        background: #111;
+    }
+    .slider-fade .hero-image {
+        position: relative;
+        inset: auto;
+        width: 100%;
+        aspect-ratio: 3 / 2;
+        background-color: #111;
+        background-position: center;
+        background-size: contain;
+        animation: none !important;
+        transform: none !important;
+    }
+    .slider-fade .item .caption {
+        position: relative;
+        top: auto;
+        left: auto;
+        width: 100%;
+        padding: 24px 22px 34px;
+        text-align: center;
+        transform: none;
+        background: #111;
+    }
+    .header .caption h5 {
+        font-size: 14px;
+        letter-spacing: 4px;
+    }
+    .header .caption h1 {
+        font-size: 42px;
+    }
+    .header .caption p {
+        margin-bottom: 8px;
+        font-size: 15px;
+    }
+    .header .slider-fade .owl-theme .owl-dots {
+        position: relative;
+        bottom: auto;
+        padding: 0 0 20px;
+        background: #111;
+    }
 }
 /* slider owl-theme */
 .slider .owl-theme .owl-dots,
