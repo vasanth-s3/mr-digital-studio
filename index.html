@@ -10,7 +10,7 @@
     <meta name="author" content="DuruThemes">
     <meta name="robots" content="index, follow">
 
-    <link rel="icon" href="img/favicon.png" type="image/png">
+    <link rel="icon" href="img/favicon.svg" type="image/svg+xml">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -43,7 +43,10 @@
         <div class="container">
             <!-- Logo -->
             <div class="logo-wrapper">
-                <a class="logo" href="#home"><h2>MR Digital Studio <span>Photography</span></h2></a>
+                <a class="logo" href="#home" aria-label="MR Digital Studio home">
+                    <img class="logo-img" src="img/mr-digital-studio-logo.svg" alt="">
+                    <h2>MR Digital Studio <span>Photography</span></h2>
+                </a>
             </div>
             <!-- Button -->
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation"> <span class="navbar-toggler-icon"><i class="ti-menu"></i></span> </button>
@@ -53,9 +56,8 @@
                     <li class="nav-item"><a class="nav-link active" href="#home">Home</a></li>
                     <li class="nav-item"><a class="nav-link" href="#about">About</a></li>
                     <li class="nav-item"><a class="nav-link" href="#services">Services</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#portfolio">Portfolio</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#team">Team</a></li>
                     <li class="nav-item"><a class="nav-link" href="#pricing">Pricing</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#portfolio">Portfolio</a></li>
                     <li class="nav-item"><a class="nav-link" href="#blog">Blog</a></li>
                     <li class="nav-item"><a class="nav-link" href="#contact">Contact</a></li>
                 </ul>
@@ -120,14 +122,6 @@
                 <div class="col-md-12 mb-30">
                     <div class="owl-carousel owl-theme text-center">
                         <div class="item">
-                            <div class="position-re o-hidden img-grayscale item-inner"> <img src="img/services/2.jpg" alt=""> </div>
-                            <div class="con"> <span class="category">
-                                    <a href="#portfolio">Discover</a>
-                                </span>
-                                <h5><a href="#portfolio">Portrait Photography</a></h5> <a href="#portfolio"><i class="ti-arrow-right"></i></a>
-                            </div>
-                        </div>
-                        <div class="item">
                             <div class="position-re o-hidden img-grayscale item-inner"> <img src="img/services/1.jpg" alt=""> </div>
                             <div class="con"> <span class="category">
                                     <a href="#portfolio">Discover</a>
@@ -136,11 +130,19 @@
                             </div>
                         </div>
                         <div class="item">
+                            <div class="position-re o-hidden img-grayscale item-inner"> <img src="img/services/2.jpg" alt=""> </div>
+                            <div class="con"> <span class="category">
+                                    <a href="#portfolio">Discover</a>
+                                </span>
+                                <h5><a href="#portfolio">Engagement Photography</a></h5> <a href="#portfolio"><i class="ti-arrow-right"></i></a>
+                            </div>
+                        </div>
+                        <div class="item">
                             <div class="position-re o-hidden img-grayscale item-inner"> <img src="img/services/3.jpg" alt=""> </div>
                             <div class="con"> <span class="category">
                                     <a href="#portfolio">Discover</a>
                                 </span>
-                                <h5><a href="#portfolio">Travel Photography</a></h5> <a href="#portfolio"><i class="ti-arrow-right"></i></a>
+                                <h5><a href="#portfolio">Puberty Photography</a></h5> <a href="#portfolio"><i class="ti-arrow-right"></i></a>
                             </div>
                         </div>
                         <div class="item">
@@ -148,7 +150,7 @@
                             <div class="con"> <span class="category">
                                     <a href="#portfolio">Discover</a>
                                 </span>
-                                <h5><a href="#portfolio">Still Life Photography</a></h5> <a href="#portfolio"><i class="ti-arrow-right"></i></a>
+                                <h5><a href="#portfolio">Outdoor Photography</a></h5> <a href="#portfolio"><i class="ti-arrow-right"></i></a>
                             </div>
                         </div>
                         <div class="item">
@@ -156,7 +158,7 @@
                             <div class="con"> <span class="category">
                                     <a href="#portfolio">Discover</a>
                                 </span>
-                                <h5><a href="#portfolio">Fashion Photography</a></h5> <a href="#portfolio"><i class="ti-arrow-right"></i></a>
+                                <h5><a href="#portfolio">Portrait Photography</a></h5> <a href="#portfolio"><i class="ti-arrow-right"></i></a>
                             </div>
                         </div>
                         <div class="item">
@@ -177,8 +179,182 @@
     </section>
     <!-- hr line -->
     <div class="line-vr-section"></div>
+    <!-- Pricing -->
+    <section id="pricing" class="section-padding" data-scroll-index="3">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="title mb-30"> <span>Shooting</span>
+                        <h2>Pricing Tables</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="row g-4 shooting-packages">
+                <div class="col-lg-6">
+                    <article class="shooting-package h-100">
+                        <header class="shooting-package-header">
+                            <h3>Package 1</h3>
+                            <p class="shooting-package-price">₹45,000</p>
+                        </header>
+                        <div class="shooting-package-details">
+                            <div>
+                                <h4>Photography &amp; coverage</h4>
+                                <ul>
+                                    <li>Traditional photo — 1</li>
+                                    <li>Traditional video — 1</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h4>Albums &amp; deliverables</h4>
+                                <ul>
+                                    <li>Album — 1 (12 × 36 size, 35 sheets)</li>
+                                    <li>2 frames</li>
+                                    <li>1 calendar</li>
+                                    <li>1 pen drive with box</li>
+                                </ul>
+                                <p class="package-note">Complimentary</p>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+                <div class="col-lg-6">
+                    <article class="shooting-package h-100">
+                        <header class="shooting-package-header">
+                            <h3>Package 2</h3>
+                            <p class="shooting-package-price">₹80,000</p>
+                        </header>
+                        <div class="shooting-package-details">
+                            <div>
+                                <h4>Photography &amp; coverage</h4>
+                                <ul>
+                                    <li>Traditional photo — 1</li>
+                                    <li>Traditional video — 1</li>
+                                    <li>Candid photo — 1</li>
+                                    <li>Pre or post wedding</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h4>Albums &amp; deliverables</h4>
+                                <ul>
+                                    <li>Wedding album — 30 sheets</li>
+                                    <li>Reception album — 30 sheets</li>
+                                    <li>2 frames</li>
+                                    <li>1 calendar</li>
+                                    <li>1 pen drive with box</li>
+                                </ul>
+                                <p class="package-note">Albums complimentary</p>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+                <div class="col-lg-6">
+                    <article class="shooting-package h-100">
+                        <header class="shooting-package-header">
+                            <h3>Package 3</h3>
+                            <p class="shooting-package-price">₹1,00,000</p>
+                        </header>
+                        <div class="shooting-package-details">
+                            <div>
+                                <h4>Photography &amp; coverage</h4>
+                                <ul>
+                                    <li>Traditional photo — 1</li>
+                                    <li>Traditional video — 1</li>
+                                    <li>Candid photo — 1</li>
+                                    <li>Candid video — 1</li>
+                                    <li>Pre or post wedding</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h4>Albums &amp; deliverables</h4>
+                                <ul>
+                                    <li>Wedding album — 35 sheets</li>
+                                    <li>Reception album — 35 sheets</li>
+                                    <li>2 frames</li>
+                                    <li>1 calendar</li>
+                                    <li>1 pen drive with box</li>
+                                </ul>
+                                <p class="package-note">Albums complimentary</p>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+                <div class="col-lg-6">
+                    <article class="shooting-package h-100">
+                        <header class="shooting-package-header">
+                            <h3>Package 4</h3>
+                            <p class="shooting-package-price">₹1,50,000</p>
+                        </header>
+                        <div class="shooting-package-details">
+                            <div>
+                                <h4>Photography &amp; coverage</h4>
+                                <ul>
+                                    <li>Engagement photo &amp; video</li>
+                                    <li>Traditional photo — 1</li>
+                                    <li>Traditional video — 1</li>
+                                    <li>Candid photo — 1</li>
+                                    <li>Candid video — 1</li>
+                                    <li>Pre or post wedding</li>
+                                    <li>Drone — 1</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h4>Albums &amp; deliverables</h4>
+                                <ul>
+                                    <li>Engagement album — 20 sheets</li>
+                                    <li>Wedding album — 35 sheets</li>
+                                    <li>Reception album — 35 sheets</li>
+                                    <li>2 frames</li>
+                                    <li>1 calendar</li>
+                                    <li>1 pen drive with box</li>
+                                </ul>
+                                <p class="package-note">Albums complimentary</p>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+                <div class="col-lg-6">
+                    <article class="shooting-package h-100">
+                        <header class="shooting-package-header">
+                            <h3>Package 5</h3>
+                            <p class="shooting-package-price">₹2,00,000</p>
+                        </header>
+                        <div class="shooting-package-details">
+                            <div>
+                                <h4>Photography &amp; coverage</h4>
+                                <ul>
+                                    <li>Engagement photo &amp; video</li>
+                                    <li>Traditional photo — 1</li>
+                                    <li>Traditional video — 1</li>
+                                    <li>Candid photo — 1</li>
+                                    <li>Candid video — 1</li>
+                                    <li>Welcome video — 1</li>
+                                    <li>Drone — 1</li>
+                                    <li>Pre or post wedding</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h4>Albums &amp; deliverables</h4>
+                                <ul>
+                                    <li>Engagement album — 25 sheets</li>
+                                    <li>Wedding album — 35 sheets</li>
+                                    <li>Reception album — 35 sheets</li>
+                                    <li>4 frames</li>
+                                    <li>2 calendars</li>
+                                    <li>2 pen drives with boxes</li>
+                                    <li>Pre-wedding album — 20 × 24 size, 30 sheets</li>
+                                </ul>
+                                <p class="package-note">Albums complimentary</p>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- hr line -->
+    <div class="line-vr-section"></div>
     <!-- Portfolio -->
-    <section id="portfolio" class="section-padding" data-scroll-index="3">
+    <section id="portfolio" class="section-padding" data-scroll-index="4">
         <div class="container">
             <div class="row">
                 <div class="col-md-12">
@@ -291,7 +467,7 @@
         </div>
     </section>
     <!-- Testimonials -->
-    <section id="testimonials" class="testimonials section-padding bg-img" data-scroll-index="4" data-overlay-dark="3" data-background="img/slider/4.jpg">
+    <section id="testimonials" class="testimonials section-padding bg-img" data-scroll-index="5" data-overlay-dark="3" data-background="img/slider/4.jpg">
         <div class="container">
             <div class="row">
                 <div class="owl-carousel owl-theme col-md-12">
@@ -335,138 +511,10 @@
             </div>
         </div>
     </section>
-    <!-- Our Team -->
-    <section id="team" class="team section-padding bg-grey" data-scroll-index="5">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-12">
-                    <div class="title mb-30"> <span>Photographer</span>
-                        <h2>Awesome Team</h2>
-                    </div>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-md-12 owl-carousel owl-theme">
-                    <div class="item">
-                        <div class="img img-grayscale item-inner"><a href="#contact"><img src="img/team/2.jpg" alt=""></a></div>
-                        <div class="info">
-                            <h5>Kristin Bowles</h5>
-                            <h6>Wedding Photographer</h6>
-                            <div class="social valign">
-                                <div class="full-width"> <a href="#"><i class="ti-facebook"></i></a> <a href="#"><i class="ti-twitter"></i></a> <a href="#"><i class="ti-linkedin"></i></a>
-                                    <p>info@danphoto.com</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="item">
-                        <div class="img img-grayscale item-inner"><a href="#contact"><img src="img/team/1.jpg" alt=""></a></div>
-                        <div class="info">
-                            <h5>Nelsan Compton</h5>
-                            <h6>Model Photographer</h6>
-                            <div class="social valign">
-                                <div class="full-width"> <a href="#"><i class="ti-facebook"></i></a> <a href="#"><i class="ti-twitter"></i></a> <a href="#"><i class="ti-linkedin"></i></a>
-                                    <p>info@danphoto.com</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="item">
-                        <div class="img img-grayscale item-inner"><a href="#contact"><img src="img/team/3.jpg" alt=""></a></div>
-                        <div class="info">
-                            <h5>Micheal Preston</h5>
-                            <h6>Event Photographer</h6>
-                            <div class="social valign">
-                                <div class="full-width"> <a href="#"><i class="ti-facebook"></i></a> <a href="#"><i class="ti-twitter"></i></a> <a href="#"><i class="ti-linkedin"></i></a>
-                                    <p>info@danphoto.com</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-    <!-- hr line -->
-    <div class="line-vr-section"></div>
-    <!-- Pricing -->
-    <section id="pricing" class="section-padding" data-scroll-index="6">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-12">
-                    <div class="title mb-30"> <span>Shooting</span>
-                        <h2>Pricing Tables</h2>
-                    </div>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-md-4">
-                    <div class="price-box">
-                        <div class="price-box-inner img-grayscale" style="background-image: url(img/price/1.jpg)">
-                            <ul>
-                                <li class="pricing-title">
-                                    <h3 class="pricing-pt-title">Standart</h3>
-                                </li>
-                                <li class="pricing-prices"> <sup class="pricing-dolar">$</sup> <span class="pricing-price" style="color: #ffffff">300</span> </li>
-                                <li class="pricing-content">
-                                    <ul>
-                                        <li>3 Hours Session</li>
-                                        <li>Photo Editing</li>
-                                        <li>50 Digital Images</li>
-                                        <li>Online Gallery</li>
-                                    </ul>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="price-box">
-                        <div class="price-box-inner" style="background-image: url(img/price/2.jpg)">
-                            <ul>
-                                <li class="pricing-title">
-                                    <h3 class="pricing-pt-title">Premium</h3>
-                                </li>
-                                <li class="pricing-prices"> <sup class="pricing-dolar">$</sup> <span class="pricing-price" style="color: #ffffff">450</span> </li>
-                                <li class="pricing-content">
-                                    <ul>
-                                        <li>6 Hours Session</li>
-                                        <li>Photo Editing</li>
-                                        <li>100 Digital Images</li>
-                                        <li>Online Gallery</li>
-                                    </ul>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="price-box">
-                        <div class="price-box-inner" style="background-image: url(img/price/3.jpg)">
-                            <ul>
-                                <li class="pricing-title">
-                                    <h3 class="pricing-pt-title">Platinum</h3>
-                                </li>
-                                <li class="pricing-prices"> <sup class="pricing-dolar">$</sup> <span class="pricing-price" style="color: #ffffff">750</span> </li>
-                                <li class="pricing-content">
-                                    <ul>
-                                        <li>12 Hours Session</li>
-                                        <li>Photo Editing</li>
-                                        <li>250 Digital Images</li>
-                                        <li>Online Gallery</li>
-                                    </ul>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
     <!-- hr line -->
     <div class="line-vr-section"></div>
     <!-- Blog -->
-    <section id="blog" class="blog section-padding bg-grey" data-scroll-index="7">
+    <section id="blog" class="blog section-padding bg-grey" data-scroll-index="6">
         <div class="container">
             <div class="row">
                 <div class="col-md-12">
@@ -527,7 +575,7 @@
     <!-- hr line -->
     <div class="line-vr-section"></div>
     <!-- Contact -->
-    <section id="contact" class="contact section-padding" data-scroll-index="8">
+    <section id="contact" class="contact section-padding" data-scroll-index="7">
         <div class="container">
             <div class="row">
                 <div class="col-md-5 info mb-30">
@@ -552,7 +600,10 @@
             <div class="row">
                 <div class="col-md-4">
                     <div class="brand">
-                        <h2>MR Digital Studio</h2>
+                        <div class="brand-heading">
+                            <img src="img/mr-digital-studio-logo.svg" alt="" class="brand-logo">
+                            <h2>MR Digital Studio</h2>
+                        </div>
                         <p>Photography and visual storytelling for people, brands, and special occasions.</p>
                     </div>
                 </div>

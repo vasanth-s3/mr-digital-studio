@@ -1852,6 +1852,160 @@ td {
     line-height: 35px
 }
 
+.shooting-package {
+    height: 100%;
+    padding: 0 26px 26px;
+    background: #fff;
+    border: 1px solid #e8e2da;
+    border-radius: 10px;
+    box-shadow: 0 12px 30px rgba(26, 20, 12, 0.07);
+    overflow: hidden;
+    transition: transform .25s ease, box-shadow .25s ease;
+}
+#pricing {
+    position: relative;
+    isolation: isolate;
+    background: linear-gradient(135deg, #f4f1e9 0%, #fbfaf7 48%, #f2eee6 100%);
+}
+#pricing::before {
+    position: absolute;
+    z-index: -1;
+    top: 55px;
+    right: -130px;
+    width: 390px;
+    height: 390px;
+    border: 1px solid rgba(249, 111, 0, 0.12);
+    border-radius: 50%;
+    box-shadow: 0 0 0 32px rgba(249, 111, 0, 0.025), 0 0 0 64px rgba(249, 111, 0, 0.02);
+    content: '';
+    pointer-events: none;
+}
+#pricing .container {
+    position: relative;
+}
+#pricing .title {
+    margin-bottom: 42px;
+}
+#pricing .title h2 {
+    font-size: 56px;
+}
+.shooting-package:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 40px rgba(26, 20, 12, 0.13);
+}
+.shooting-package-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin: 0 -26px;
+    padding: 20px 26px;
+    background: #171714;
+}
+.shooting-package-header h3 {
+    margin: 0;
+    color: #fff;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 27px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+.shooting-package-price {
+    margin: 0;
+    color: #ff9a48;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 32px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+.shooting-package-details {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 22px;
+    padding-top: 24px;
+}
+.shooting-package-details h4 {
+    margin: 0 0 10px;
+    color: #24231f;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+.shooting-package-details h4::after {
+    display: block;
+    width: 28px;
+    height: 2px;
+    margin-top: 8px;
+    background: #f96f00;
+    content: '';
+}
+.shooting-package-details ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.shooting-package-details li {
+    position: relative;
+    margin-bottom: 7px;
+    padding-left: 15px;
+    color: #55534e;
+    font-size: 14px;
+    line-height: 1.45;
+}
+.shooting-package-details li::before {
+    position: absolute;
+    left: 0;
+    color: #f96f00;
+    content: '•';
+}
+.shooting-package .package-note {
+    display: inline-block;
+    margin: 8px 0 0;
+    padding: 4px 9px;
+    color: #80501f;
+    background: #fbf0e2;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+@media (max-width: 991px) {
+    #pricing {
+        padding-top: 90px;
+        padding-bottom: 90px;
+    }
+}
+@media (max-width: 575px) {
+    #pricing {
+        padding-top: 72px;
+        padding-bottom: 72px;
+    }
+    #pricing .title {
+        margin-bottom: 30px;
+    }
+    #pricing .title h2 {
+        font-size: 42px;
+    }
+    .shooting-package {
+        padding: 0 18px 22px;
+    }
+    .shooting-package-header {
+        margin: 0 -18px;
+        padding: 17px 18px;
+    }
+    .shooting-package-header h3 {
+        font-size: 22px;
+    }
+    .shooting-package-price {
+        font-size: 25px;
+    }
+    .shooting-package-details {
+        grid-template-columns: 1fr;
+        gap: 20px;
+        padding-top: 20px;
+    }
+}
+
 
 
 /* ======= FAQs Style ======= */
@@ -2588,12 +2742,62 @@ a.underline-text:hover {
     width: 170px;
     margin-bottom: 10px;
 }
+
+/* MR Digital Studio brand mark */
+.navbar .logo-img,
+.nav-scroll .logo-img {
+    display: block;
+    flex: 0 0 58px;
+    width: 58px;
+    height: 58px;
+    padding: 4px;
+    margin: 0;
+    object-fit: contain;
+    background: #fff;
+    border-radius: 8px;
+}
+.logo-wrapper .logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.logo-wrapper .logo h2 {
+    width: auto;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 22px;
+    line-height: 1;
+    letter-spacing: 0.5px;
+}
+.logo-wrapper .logo span {
+    margin-top: 5px;
+    font-size: 9px;
+    letter-spacing: 4px;
+}
 .footer-section .brand h2 {
     color: #fff;
     font-size: 24px;
     letter-spacing: 1px;
     margin-bottom: 10px;
     text-transform: uppercase;
+}
+.footer-section .brand-heading {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+.footer-section .brand-heading .brand-logo {
+    display: block;
+    flex: 0 0 58px;
+    width: 58px;
+    height: 58px;
+    padding: 4px;
+    object-fit: contain;
+    background: #fff;
+    border-radius: 8px;
+}
+.footer-section .brand-heading h2 {
+    margin-bottom: 0;
 }
 .footer-section p b {
     color: #f96f00;
