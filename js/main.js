@@ -210,17 +210,20 @@
     loop: true,
     margin: 30,
     mouseDrag: true,
-    autoplay: false,
+    autoplay: true,
+    autoplayTimeout: 2000,
+    autoplaySpeed: 700,
+    autoplayHoverPause: false,
     dots: true,
     responsiveClass: true,
     responsive: {
       0: {
         items: 1,
-        dots: false,
+        dots: true,
       },
       600: {
         items: 2,
-        dots: false,
+        dots: true,
       },
       1000: {
         items: 3,
