@@ -180,31 +180,6 @@
     },
   });
 
-  // Testimonials owlCarousel
-  $(".testimonials .owl-carousel").owlCarousel({
-    loop: true,
-    center: true,
-    margin: 15,
-    mouseDrag: false,
-    autoplay: true,
-    dots: true,
-    smartSpeed: 1500,
-    responsiveClass: true,
-    responsive: {
-      0: {
-        items: 1,
-        dots: false,
-      },
-      700: {
-        items: 2,
-        dots: false,
-      },
-      1000: {
-        items: 3,
-      },
-    },
-  });
-
   // Services owlCarousel
   $(".services .owl-carousel").owlCarousel({
     loop: true,
