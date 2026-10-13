@@ -29,26 +29,35 @@ http.createServer((request, response) => {
     return;
   }
 
-  const relativePath = pathname === "/" ? "index.html" : pathname.replace(/^\/+/, "");
-  const filePath = path.resolve(root, relativePath);
+  const relativePath = pathname === "/"
+    ? "index.html"
+    : /^\/admin\/?$/.test(pathname)
+      ? "select/admin.html"
+      : pathname.replace(/^\/+/, "");
+  let filePath = path.resolve(root, relativePath);
   if (filePath !== root && !filePath.startsWith(root + path.sep)) {
     response.writeHead(403);
     response.end("Forbidden");
     return;
   }
 
-  fs.readFile(filePath, (error, content) => {
-    if (error) {
-      response.writeHead(error.code === "ENOENT" ? 404 : 500);
-      response.end(error.code === "ENOENT" ? "Not found" : "Server error");
-      return;
-    }
+  fs.stat(filePath, (statError, stats) => {
+    if (!statError && stats.isDirectory()) filePath = path.join(filePath, "index.html");
+
+    fs.readFile(filePath, (error, content) => {
+      if (error) {
+        const notFound = error.code === "ENOENT" || error.code === "ENOTDIR";
+        response.writeHead(notFound ? 404 : 500, { "Content-Type": "text/plain; charset=utf-8" });
+        response.end(notFound ? "Not found" : "Server error");
+        return;
+      }
 
     response.writeHead(200, {
       "Content-Type": contentTypes[path.extname(filePath).toLowerCase()] || "application/octet-stream",
       "X-Content-Type-Options": "nosniff",
     });
     response.end(content);
+    });
   });
 }).listen(port, () => {
   console.log(`MR Digital Studio is running at http://localhost:${port}`);

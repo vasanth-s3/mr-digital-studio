@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#171614">
+  <meta name="description" content="Choose your favourite photographs from your MR Digital Studio gallery.">
+  <title>Photo Selection | MR Digital Studio</title>
+  <link rel="icon" href="../img/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;500;600&family=Didact+Gothic&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="selection.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="../" aria-label="MR Digital Studio home">
+      <img src="../img/mr-digital-studio-logo.svg" alt="">
+      <span>MR DIGITAL STUDIO</span>
+    </a>
+    <span class="private-label"><span class="private-dot"></span> PRIVATE GALLERY</span>
+  </header>
+
+  <main>
+    <section class="intro" aria-labelledby="gallery-title">
+      <p class="eyebrow">A COLLECTION OF MOMENTS</p>
+      <h1 id="gallery-title">Your story, <em>beautifully kept.</em></h1>
+      <p class="intro-copy">Take your time. Choose the photographs you love most.</p>
+      <div class="project-meta"><span>ARUN &amp; PRIYA</span><i></i><span>WEDDING 2026</span></div>
+    </section>
+
+    <section class="gallery-section" aria-label="Wedding photographs">
+      <div class="gallery-toolbar">
+        <div><span class="photo-total" id="photo-total">06</span><span class="toolbar-caption">PHOTOGRAPHS</span></div>
+        <p>Your selection is saved on this device</p>
+      </div>
+      <div class="photo-grid" id="photo-grid" aria-live="polite"></div>
+    </section>
+  </main>
+
+  <footer class="selection-footer">
+    <div class="selection-count"><span class="count-number" id="selected-count">0</span><span>selected</span></div>
+    <button class="send-button" id="send-selection" type="button">SEND SELECTION <span aria-hidden="true">↗</span></button>
+  </footer>
+
+  <div class="lightbox" id="lightbox" aria-hidden="true" role="dialog" aria-modal="true" aria-label="Photo viewer">
+    <button class="lightbox-close" id="lightbox-close" aria-label="Close photo viewer">×</button>
+    <button class="lightbox-arrow previous" id="photo-previous" aria-label="Previous photo">←</button>
+    <figure class="lightbox-figure"><img id="lightbox-image" alt=""><figcaption id="lightbox-caption"></figcaption></figure>
+    <button class="lightbox-arrow next" id="photo-next" aria-label="Next photo">→</button>
+    <button class="lightbox-select" id="lightbox-select" type="button"></button>
+  </div>
+  <div class="notice" id="notice" role="status" aria-live="polite"></div>
+  <script src="selection.js"></script>
+</body>
+</html>

@@ -1,0 +1,23 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "mrds-drive-gallery-poc",
+  "main": "src/index.js",
+  "compatibility_date": "2026-10-07",
+  "workers_dev": true,
+  "vars": {
+    "FIREBASE_PROJECT_ID": "mr-studio-photo-gallery",
+    "ALLOWED_ORIGIN": "http://localhost:8010"
+  },
+  "ratelimits": [
+    {
+      "name": "ADMIN_LOGIN_LIMITER",
+      "namespace_id": "183001",
+      "simple": { "limit": 10, "period": 60 }
+    },
+    {
+      "name": "CLIENT_CODE_LIMITER",
+      "namespace_id": "183002",
+      "simple": { "limit": 30, "period": 60 }
+    }
+  ]
+}

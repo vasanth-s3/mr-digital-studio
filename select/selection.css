@@ -1,0 +1,507 @@
+:root {
+    --ink: #191815;
+    --paper: #f8f7f4;
+    --muted: #8b8881;
+    --line: #dedbd5;
+    --accent: #b78b56;
+    --serif: Georgia, "Times New Roman", serif;
+    --sans: "Didact Gothic", Arial, sans-serif
+}
+
+* {
+    box-sizing: border-box
+}
+
+html {
+    background: var(--paper)
+}
+
+body {
+    margin: 0;
+    color: var(--ink);
+    font-family: var(--sans);
+    padding-bottom: 100px
+}
+
+.topbar {
+    height: 76px;
+    padding: 0 clamp(22px, 6vw, 88px);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--line);
+    background: rgba(248, 247, 244, .94)
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+    color: var(--ink);
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: .17em
+}
+
+.brand img {
+    width: 38px;
+    height: 38px
+}
+
+.private-label {
+    font-size: 10px;
+    letter-spacing: .15em;
+    color: #77736d
+}
+
+.private-dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    background: #8d9c78;
+    border-radius: 50%;
+    vertical-align: 1px;
+    margin-right: 8px
+}
+
+.intro {
+    text-align: center;
+    padding: 86px 20px 66px
+}
+
+.eyebrow,
+.toolbar-caption {
+    font-size: 10px;
+    letter-spacing: .22em;
+    color: var(--accent);
+    font-weight: bold
+}
+
+.intro h1 {
+    font: 400 clamp(38px, 6vw, 68px)/1.12 var(--serif);
+    margin: 16px 0
+}
+
+.intro h1 em {
+    font-weight: 400;
+    color: var(--accent)
+}
+
+.intro-copy {
+    font-size: 15px;
+    color: #77736d;
+    margin: 18px 0 30px
+}
+
+.project-meta {
+    display: flex;
+    gap: 17px;
+    justify-content: center;
+    align-items: center;
+    font-size: 10px;
+    letter-spacing: .18em;
+    color: #5d5953
+}
+
+.project-meta i {
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: var(--accent)
+}
+
+.gallery-section {
+    max-width: 1260px;
+    margin: 0 auto;
+    padding: 0 clamp(20px, 5vw, 64px)
+}
+
+.gallery-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--line);
+    padding: 0 0 16px;
+    margin-bottom: 22px
+}
+
+.photo-total {
+    font: 26px var(--serif);
+    margin-right: 11px
+}
+
+.toolbar-caption {
+    color: #76716b;
+    font-size: 9px
+}
+
+.gallery-toolbar p {
+    font-size: 11px;
+    color: var(--muted);
+    margin: 0
+}
+
+.photo-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 20px
+}
+
+.photo-card {
+    position: relative;
+    overflow: hidden;
+    background: #e9e6e0;
+    aspect-ratio: 4/3;
+    cursor: zoom-in
+}
+
+.photo-card img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform .55s cubic-bezier(.2, .7, .2, 1), filter .3s
+}
+
+.photo-card:hover img {
+    transform: scale(1.035)
+}
+
+.photo-card.is-selected img {
+    filter: brightness(.83)
+}
+
+.photo-select {
+    position: absolute;
+    inset: 0;
+    border: 0;
+    background: transparent;
+    color: white;
+    text-align: left;
+    cursor: pointer
+}
+
+.photo-select:focus-visible {
+    outline: 2px solid white;
+    outline-offset: -6px
+}
+
+.photo-number {
+    position: absolute;
+    left: 16px;
+    bottom: 15px;
+    font-size: 10px;
+    letter-spacing: .12em;
+    text-shadow: 0 1px 6px #0008
+}
+
+.select-mark {
+    position: absolute;
+    right: 15px;
+    top: 15px;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    border: 1px solid #ffffffad;
+    background: #14131055;
+    font-size: 17px;
+    transition: .2s
+}
+
+.is-selected .select-mark {
+    background: var(--accent);
+    border-color: var(--accent)
+}
+
+.card-sheen {
+    position: absolute;
+    inset: 45% 0 0;
+    background: linear-gradient(transparent, #0005);
+    pointer-events: none
+}
+
+.selection-footer {
+    position: fixed;
+    z-index: 5;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    min-height: 78px;
+    background: #191815;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px clamp(22px, 6vw, 88px);
+    box-shadow: 0 -8px 30px #19181512
+}
+
+.selection-count {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    font-size: 13px;
+    color: #d0cdc7
+}
+
+.count-number {
+    font: 30px var(--serif);
+    color: white
+}
+
+.send-button {
+    border: 0;
+    background: var(--accent);
+    color: white;
+    padding: 16px 25px;
+    letter-spacing: .13em;
+    font: 11px var(--sans);
+    cursor: pointer;
+    transition: background .2s
+}
+
+.send-button:hover {
+    background: #9c7343
+}
+
+.send-button span {
+    font-size: 15px;
+    margin-left: 17px
+}
+
+.lightbox {
+    position: fixed;
+    z-index: 10;
+    inset: 0;
+    background: rgba(0, 0, 0, .82);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 7vw 70px
+}
+
+.lightbox.open {
+    display: flex
+}
+
+.lightbox-figure {
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center
+}
+
+.lightbox-figure img {
+    display: block;
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: calc(100vh - 155px);
+    object-fit: contain;
+    margin: auto;
+    box-shadow: 0 12px 48px #0008
+}
+
+.lightbox-figure figcaption {
+    color: #ddd;
+    font-size: 13px;
+    letter-spacing: .04em;
+    margin-top: 10px
+}
+
+.lightbox-close,
+.lightbox-arrow {
+    position: absolute;
+    color: white;
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    z-index: 1
+}
+
+.lightbox-close {
+    right: 24px;
+    top: 14px;
+    font-size: 38px;
+    font-weight: 200
+}
+
+.lightbox-arrow {
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 32px;
+    padding: 15px
+}
+
+.lightbox-arrow.previous {
+    left: 12px
+}
+
+.lightbox-arrow.next {
+    right: 12px
+}
+
+.lightbox-select {
+    position: absolute;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 1px solid #ffffffaa;
+    background: #1118;
+    color: white;
+    padding: 11px 22px;
+    font: 11px var(--sans);
+    letter-spacing: .12em;
+    cursor: pointer
+}
+
+.lightbox-select:hover {
+    background: var(--accent);
+    border-color: var(--accent)
+}
+
+.notice {
+    position: fixed;
+    z-index: 20;
+    left: 50%;
+    bottom: 98px;
+    transform: translate(-50%, 12px);
+    padding: 12px 18px;
+    background: #26241f;
+    color: white;
+    font-size: 13px;
+    opacity: 0;
+    pointer-events: none;
+    transition: .25s
+}
+
+.notice.visible {
+    opacity: 1;
+    transform: translate(-50%, 0)
+}
+
+@media(max-width:800px) {
+    .photo-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px
+    }
+
+    .intro {
+        padding: 68px 20px 52px
+    }
+
+    .gallery-section {
+        padding: 0 20px
+    }
+
+    .photo-card {
+        aspect-ratio: 1/1
+    }
+
+    .lightbox {
+        padding: 60px 48px 85px
+    }
+
+    .lightbox-arrow.previous {
+        left: 3px
+    }
+
+    .lightbox-arrow.next {
+        right: 3px
+    }
+}
+
+@media(max-width:480px) {
+    .topbar {
+        height: 64px;
+        padding: 0 16px
+    }
+
+    .brand {
+        font-size: 10px;
+        gap: 8px
+    }
+
+    .brand img {
+        width: 32px;
+        height: 32px
+    }
+
+    .private-label {
+        font-size: 8px
+    }
+
+    .intro {
+        padding: 58px 18px 44px
+    }
+
+    .intro h1 {
+        font-size: 41px
+    }
+
+    .intro-copy {
+        font-size: 13px
+    }
+
+    .project-meta {
+        font-size: 9px
+    }
+
+    .gallery-section {
+        padding: 0 12px
+    }
+
+    .gallery-toolbar {
+        margin-bottom: 12px
+    }
+
+    .gallery-toolbar p {
+        font-size: 9px
+    }
+
+    .photo-grid {
+        gap: 8px
+    }
+
+    .photo-number {
+        left: 10px;
+        bottom: 10px;
+        font-size: 9px
+    }
+
+    .select-mark {
+        right: 9px;
+        top: 9px;
+        width: 30px;
+        height: 30px
+    }
+
+    .selection-footer {
+        min-height: 70px;
+        padding: 10px 16px
+    }
+
+    .send-button {
+        padding: 15px 15px;
+        font-size: 9px
+    }
+
+    .send-button span {
+        margin-left: 8px
+    }
+
+    .lightbox {
+        padding: 55px 38px 90px
+    }
+
+    .lightbox-figure img {
+        max-height: calc(100vh - 190px)
+    }
+}

@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Drive Worker POC | MR Digital Studio</title>
+  <link rel="stylesheet" href="worker-poc.css">
+</head>
+<body>
+  <main class="shell">
+    <a class="back-link" href="./">← Back to static demo</a>
+    <p class="eyebrow">PRIVATE PHOTO SELECTION</p>
+    <h1 id="gallery-title">Private Drive gallery</h1>
+    <p id="gallery-subtitle" class="intro">Enter the access code provided by your photographer to view the gallery.</p>
+
+    <form id="connect-form" class="connect-form">
+      <input id="worker-url" type="hidden">
+      <label>Gallery access code<input id="access-code" type="password" placeholder="Enter the code" required autocomplete="one-time-code"></label>
+      <button type="submit">OPEN GALLERY <span>→</span></button>
+    </form>
+    <p id="status" class="status" role="status" aria-live="polite">Enter your access code to begin.</p>
+    <p id="selection-summary" class="selection-summary" aria-live="polite"></p>
+    <div id="gallery-tools" class="gallery-tools" hidden>
+      <label class="photo-search">Search photos<input id="photo-search" type="search" placeholder="Search filenames" autocomplete="off"></label>
+      <label class="photo-sort">Sort by<select id="photo-sort"><option value="name-asc">Filename (A–Z)</option><option value="selected">Selected first</option><option value="name-desc">Filename (Z–A)</option></select></label>
+      <p id="visible-count" class="visible-count" aria-live="polite"></p>
+    </div>
+    <section id="photos" class="photos" aria-label="Photos from Google Drive"></section>
+    <section id="submit-panel" class="submit-panel" hidden>
+      <p id="submit-message">Review your choices, then send your final selection to the photographer.</p>
+      <button id="submit-selection" type="button">SEND SELECTION</button>
+    </section>
+  </main>
+  <dialog id="photo-viewer" class="photo-viewer" aria-label="Photo viewer">
+    <div class="viewer-toolbar"><p id="viewer-counter"></p><button id="viewer-close" class="viewer-icon" type="button" aria-label="Close photo viewer">×</button></div>
+    <div class="viewer-stage"><button id="viewer-previous" class="viewer-arrow" type="button" aria-label="Previous photo">‹</button><img id="viewer-image" alt=""><button id="viewer-next" class="viewer-arrow" type="button" aria-label="Next photo">›</button></div>
+    <div class="viewer-footer"><p id="viewer-filename"></p><button id="viewer-select" type="button"></button></div>
+  </dialog>
+  <script src="gallery-config.js"></script>
+  <script src="worker-poc.js"></script>
+</body>
+</html>
