@@ -24,6 +24,15 @@ export default {
         await requireSession(request, env, "admin");
         return await createProject(request, env, cors);
       }
+      const projectMatch = url.pathname.match(/^\/api\/admin\/projects\/([A-Za-z0-9_-]+)$/);
+      if (projectMatch && request.method === "PATCH") {
+        await requireSession(request, env, "admin");
+        return await updateProjectStatus(projectMatch[1], request, env, cors);
+      }
+      if (projectMatch && request.method === "DELETE") {
+        await requireSession(request, env, "admin");
+        return await deleteProject(projectMatch[1], env, cors);
+      }
       const accessCodeMatch = url.pathname.match(/^\/api\/admin\/projects\/([A-Za-z0-9_-]+)\/access-code$/);
       if (accessCodeMatch && request.method === "POST") {
         await requireSession(request, env, "admin");
@@ -46,28 +55,34 @@ export default {
       }
       if (url.pathname === "/api/photos" && request.method === "GET") {
         const session = await requireSession(request, env, "client");
+        await requireActiveProject(session.projectId, env);
         return json({ photos: await listPhotos(env, session) }, 200, { ...cors, "Cache-Control": "no-store" });
       }
       if (url.pathname === "/api/selections" && request.method === "GET") {
         const session = await requireSession(request, env, "client");
+        await requireActiveProject(session.projectId, env);
         return json({ selections: await listSelections(env, session) }, 200, { ...cors, "Cache-Control": "no-store" });
       }
       if (url.pathname === "/api/submission" && request.method === "POST") {
         const session = await requireSession(request, env, "client");
+        await requireActiveProject(session.projectId, env);
         return await submitSelection(request, env, cors, session);
       }
       if (url.pathname === "/api/submission" && request.method === "GET") {
         const session = await requireSession(request, env, "client");
+        await requireActiveProject(session.projectId, env);
         return json(await getSubmissionStatus(env, session), 200, { ...cors, "Cache-Control": "no-store" });
       }
       const selectionMatch = url.pathname.match(/^\/api\/selections\/([A-Za-z0-9_-]+)$/);
       if (selectionMatch && request.method === "PUT") {
         const session = await requireSession(request, env, "client");
+        await requireActiveProject(session.projectId, env);
         return await saveSelection(selectionMatch[1], request, env, cors, session);
       }
       const photoMatch = url.pathname.match(/^\/api\/photos\/([A-Za-z0-9_-]+)$/);
       if (photoMatch && request.method === "GET") {
         const session = await requireSession(request, env, "client");
+        await requireActiveProject(session.projectId, env);
         return await streamPhoto(photoMatch[1], env, cors, session, url.searchParams.get("size") === "preview");
       }
       return json({ error: "Not found" }, 404, cors);
@@ -122,7 +137,15 @@ async function createAdminSession(request, env, cors) {
   if (limited) return limited;
   assertConfigured(env);
   const body = await readJson(request);
-  if (env.FIREBASE_WEB_API_KEY && env.FIREBASE_ADMIN_UID) {
+  const approvedAdminUids = new Set([
+    env.FIREBASE_ADMIN_UID || "",
+    ...(env.FIREBASE_ADMIN_UIDS || "").split(","),
+  ].map(uid => uid.trim()).filter(Boolean));
+  const firebaseAdminConfigured = Boolean(env.FIREBASE_WEB_API_KEY || approvedAdminUids.size);
+  if (firebaseAdminConfigured) {
+    if (!env.FIREBASE_WEB_API_KEY || !approvedAdminUids.size) {
+      return json({ error: "Firebase admin authentication is not fully configured." }, 503, cors);
+    }
     if (!body || typeof body.idToken !== "string") return json({ error: "Sign in with the studio Firebase account." }, 401, cors);
     const response = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${encodeURIComponent(env.FIREBASE_WEB_API_KEY)}`, {
       method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ idToken: body.idToken }),
@@ -130,7 +153,7 @@ async function createAdminSession(request, env, cors) {
     if (!response.ok) return json({ error: "The studio account could not be verified." }, 401, cors);
     const result = await response.json();
     const user = result.users?.[0];
-    if (!user || user.localId !== env.FIREBASE_ADMIN_UID || user.emailVerified !== true) {
+    if (!user || !approvedAdminUids.has(user.localId) || user.emailVerified !== true) {
       return json({ error: "This verified Firebase account is not authorized for the studio admin." }, 403, cors);
     }
   } else if (!body || typeof body.code !== "string" || !env.ADMIN_ACCESS_CODE || !constantTimeEqual(body.code, env.ADMIN_ACCESS_CODE)) {
@@ -238,6 +261,54 @@ async function rotateClientCode(projectId, env, cors) {
   return json({ projectId, clientCode }, 200, { ...cors, "Cache-Control": "no-store" });
 }
 
+async function updateProjectStatus(projectId, request, env, cors) {
+  const body = await readJson(request);
+  if (!body || !["active", "locked"].includes(body.status)) return json({ error: "Project status must be active or locked." }, 400, cors);
+  const project = await getFirestoreDocument(`projects/${projectId}`, env);
+  if (!project || project.fields?.status?.stringValue === "deleted") throw httpError(404, "Project not found.");
+  if (!project.updateTime) throw httpError(409, "This project changed. Refresh the admin page and try again.");
+  const updatedAt = new Date().toISOString();
+  const token = await googleAccessToken(env);
+  await commitFirestoreWrites(env, token, [{
+    update: { name: firestoreDocumentName(`projects/${projectId}`, env), fields: { status: { stringValue: body.status }, updatedAt: { timestampValue: updatedAt } } },
+    updateMask: { fieldPaths: ["status", "updatedAt"] },
+    currentDocument: { updateTime: project.updateTime },
+  }]);
+  return json({ projectId, status: body.status, updatedAt }, 200, { ...cors, "Cache-Control": "no-store" });
+}
+
+async function deleteProject(projectId, env, cors) {
+  const project = await getFirestoreDocument(`projects/${projectId}`, env);
+  if (!project) throw httpError(404, "Project not found.");
+  const token = await googleAccessToken(env);
+  const selectionParams = new URLSearchParams({ pageSize: "1000" });
+  const selectionDocuments = [];
+  do {
+    const response = await fetch(`${firestoreDocumentUrl(`projects/${projectId}/selections`, env)}?${selectionParams}`, { headers: { Authorization: `Bearer ${token}` } });
+    if (!response.ok) throw await firestoreError(response);
+    const result = await response.json();
+    selectionDocuments.push(...(result.documents || []));
+    if (result.nextPageToken) selectionParams.set("pageToken", result.nextPageToken);
+    else selectionParams.delete("pageToken");
+  } while (selectionParams.has("pageToken"));
+
+  for (let offset = 0; offset < selectionDocuments.length; offset += 400) {
+    await commitFirestoreWrites(env, token, selectionDocuments.slice(offset, offset + 400).map(document => ({ delete: document.name })));
+  }
+  const deletes = [];
+  const codeHash = project.fields?.accessCodeHash?.stringValue;
+  if (codeHash) deletes.push({ delete: firestoreDocumentName(`projectAccessCodes/${codeHash}`, env) });
+  deletes.push({ delete: firestoreDocumentName(`projects/${projectId}`, env) });
+  await commitFirestoreWrites(env, token, deletes);
+  return json({ projectId, deleted: true }, 200, { ...cors, "Cache-Control": "no-store" });
+}
+
+async function requireActiveProject(projectId, env) {
+  const project = await getFirestoreDocument(`projects/${projectId}`, env);
+  if (!project || project.fields?.status?.stringValue !== "active") throw httpError(404, "This gallery is unavailable.");
+  return project;
+}
+
 async function listProjects(env) {
   const token = await googleAccessToken(env);
   const params = new URLSearchParams({ pageSize: "100" });
@@ -250,7 +321,7 @@ async function listProjects(env) {
     if (result.nextPageToken) params.set("pageToken", result.nextPageToken);
     else params.delete("pageToken");
   } while (params.has("pageToken"));
-  const projects = await Promise.all(documents.map(async document => {
+  const projects = await Promise.all(documents.filter(document => document.fields?.status?.stringValue !== "deleted").map(async document => {
     const fields = document.fields || {};
     const id = document.name.split("/").pop();
     const selectedCount = fields.selectedCount?.integerValue !== undefined

@@ -36,6 +36,14 @@
     <div class="viewer-stage"><button id="viewer-previous" class="viewer-arrow" type="button" aria-label="Previous photo">‹</button><img id="viewer-image" alt=""><button id="viewer-next" class="viewer-arrow" type="button" aria-label="Next photo">›</button></div>
     <div class="viewer-footer"><p id="viewer-filename"></p><button id="viewer-select" type="button"></button></div>
   </dialog>
+  <dialog id="submit-confirm-dialog" class="submit-confirm-dialog" aria-labelledby="submit-confirm-title" aria-describedby="submit-confirm-message">
+    <section class="submit-confirm-card">
+      <span class="submit-confirm-icon" aria-hidden="true">✓</span>
+      <h2 id="submit-confirm-title">Send your selection?</h2>
+      <p id="submit-confirm-message"></p>
+      <div class="submit-confirm-actions"><button id="submit-confirm-cancel" type="button">Review photos</button><button id="submit-confirm-accept" type="button">Send selection</button></div>
+    </section>
+  </dialog>
   <script src="gallery-config.js"></script>
   <script src="worker-poc.js"></script>
 </body>

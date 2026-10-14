@@ -7,6 +7,8 @@
   const gallerySubtitle = document.getElementById("gallery-subtitle");
   const submitPanel = document.getElementById("submit-panel");
   const submitButton = document.getElementById("submit-selection");
+  const submitConfirmDialog = document.getElementById("submit-confirm-dialog");
+  let submitConfirmResolver = null;
   const submitMessage = document.getElementById("submit-message");
   const viewer = document.getElementById("photo-viewer");
   const viewerImage = document.getElementById("viewer-image");
@@ -399,10 +401,30 @@
     if (cardButton) toggleSelection(photo, cardButton);
   });
 
+  function confirmSubmission() {
+    document.getElementById("submit-confirm-title").textContent = resubmissionEnabled ? "Resubmit your selection?" : "Send your selection?";
+    document.getElementById("submit-confirm-message").textContent = `You have selected ${selected.size} photo${selected.size === 1 ? "" : "s"}. After submitting, your choices will be locked until the photographer allows resubmission.`;
+    submitConfirmDialog.showModal();
+    return new Promise(resolve => { submitConfirmResolver = resolve; });
+  }
+
+  function finishSubmitConfirmation(accepted) {
+    submitConfirmDialog.close();
+    submitConfirmResolver?.(accepted);
+    submitConfirmResolver = null;
+  }
+
+  document.getElementById("submit-confirm-cancel").addEventListener("click", () => finishSubmitConfirmation(false));
+  document.getElementById("submit-confirm-accept").addEventListener("click", () => finishSubmitConfirmation(true));
+  submitConfirmDialog.addEventListener("cancel", event => { event.preventDefault(); finishSubmitConfirmation(false); });
+  submitConfirmDialog.addEventListener("click", event => {
+    if (event.target === submitConfirmDialog) finishSubmitConfirmation(false);
+  });
+
   submitButton.addEventListener("click", async () => {
     if (pendingSaves > 0) return setStatus("Wait for photo changes to finish saving before submitting.", "error");
     if (!selected.size) return setStatus("Select at least one photo before sending your selection.", "error");
-    const confirmed = window.confirm(`${resubmissionEnabled ? "Resubmit" : "Send"} your selection of ${selected.size} photo${selected.size === 1 ? "" : "s"}? You will not be able to change it after submission.`);
+    const confirmed = await confirmSubmission();
     if (!confirmed) return;
     submitButton.disabled = true;
     setStatus("Sending your final selection…");

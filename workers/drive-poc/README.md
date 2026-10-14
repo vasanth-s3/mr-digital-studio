@@ -8,7 +8,7 @@ This project provides the working gallery, photographer admin, Google Drive prox
 - Firestore stores project metadata, HMAC hashes of client access codes, and selections. It does not store the images.
 - The service account needs **Cloud Datastore User** (`roles/datastore.user`) on Google Cloud project `mr-studio-photo-gallery`.
 - Firestore REST calls using the service account are authorized by Google Cloud IAM and bypass Firestore Security Rules. The Worker validates codes and scopes signed client sessions to a project; production admin requests also require a verified Firebase account whose UID matches the configured studio UID.
-- Firebase Authentication secures the production admin login. The old shared admin code is a local-only fallback. When Firebase admin variables are configured in the Worker, the shared code is ignored.
+- Firebase Authentication secures the admin login with Google or the existing email/password provider. The Worker accepts only explicitly allow-listed Firebase UIDs; the old shared admin code is a local-only fallback when Firebase admin configuration is absent.
 - The Firebase Web API key in `select/gallery-config.js` is public app configuration; it is not a credential for Google Drive or Firestore. Restrict it to Firebase APIs and apply reasonable Identity Toolkit quotas.
 
 The dedicated admin dashboard is at `/admin`. Create the first Firebase admin account and authorize its UID by following [ADMIN_ACCOUNT_SETUP.md](./ADMIN_ACCOUNT_SETUP.md). There is no public admin sign-up form.

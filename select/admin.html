@@ -30,40 +30,45 @@
     <symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9" r="1.5"/><path d="m21 15-5-5L5 20"/></symbol>
     <symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="m19.4 15 .1.1 1.1.8-1.1 1.9-1.3-.5a8 8 0 0 1-1.5.9l-.2 1.4h-2.2l-.3-1.4a8 8 0 0 1-1.6-.6l-1.2.7-1.6-1.6.7-1.2a8 8 0 0 1-.6-1.6l-1.4-.3v-2.2l1.4-.3a8 8 0 0 1 .6-1.6l-.7-1.2 1.6-1.6 1.2.7a8 8 0 0 1 1.6-.6l.3-1.4h2.2l.3 1.4a8 8 0 0 1 1.6.6l1.2-.7 1.6 1.6-.7 1.2a8 8 0 0 1 .6 1.6l1.4.3v2.2l-1.4.3a8 8 0 0 1-.6 1.6Z"/></symbol>
     <symbol id="i-columns" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16M15 4v16"/></symbol>
+    <symbol id="i-unlock" viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 7.5-2"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2m3 0-1 14H6L5 6m4 4v6m6-6v6"/></symbol>
+    <symbol id="i-more-vertical" viewBox="0 0 24 24"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></symbol>
   </svg>
 
-  <main id="login-screen" class="login-screen">
+  <main id="login-screen" class="login-screen" hidden>
     <a class="login-brand" href="/" aria-label="MR Digital Studio home">
       <span class="brand-mark"><svg class="icon"><use href="#i-camera"/></svg></span>
       <span><strong>MR DIGITAL STUDIO</strong><small>PHOTOGRAPHY</small></span>
     </a>
     <section class="login-card" aria-labelledby="login-title">
-      <div class="login-emblem"><svg class="icon"><use href="#i-lock"/></svg></div>
-      <p class="eyebrow">PRIVATE STUDIO ACCESS</p>
       <h1 id="login-title">Welcome back</h1>
       <p class="login-copy">Sign in to manage client galleries and photo selections.</p>
+      <button id="google-login" class="google-login" type="button" disabled><svg class="google-mark" viewBox="0 0 48 48" aria-hidden="true"><path fill="#4285F4" d="M43.6 24.5c0-1.4-.1-2.8-.4-4.1H24v7.8h11a9.4 9.4 0 0 1-4.1 6.2v5.1h6.6c3.9-3.6 6.1-8.8 6.1-15Z"/><path fill="#34A853" d="M24 44c5.5 0 10.1-1.8 13.5-4.8l-6.6-5.1c-1.8 1.2-4.1 1.9-6.9 1.9-5.3 0-9.8-3.6-11.4-8.4H5.8v5.3A20 20 0 0 0 24 44Z"/><path fill="#FBBC05" d="M12.6 27.6a12 12 0 0 1 0-7.2v-5.3H5.8a20 20 0 0 0 0 17.8l6.8-5.3Z"/><path fill="#EA4335" d="M24 12c3 0 5.7 1 7.8 3.1l5.8-5.8A19.3 19.3 0 0 0 24 4 20 20 0 0 0 5.8 15.1l6.8 5.3C14.2 15.6 18.7 12 24 12Z"/></svg><span>Continue with Google</span></button>
+      <div class="login-divider"><span>or sign in with email</span></div>
       <form id="login-form">
         <label for="admin-email">Email address</label>
         <div class="input-wrap"><svg class="icon"><use href="#i-mail"/></svg><input id="admin-email" name="email" type="email" placeholder="you@yourstudio.com" autocomplete="username" required></div>
         <label for="admin-password">Password</label>
         <div class="input-wrap"><svg class="icon"><use href="#i-lock"/></svg><input id="admin-password" name="password" type="password" placeholder="Enter your password" autocomplete="current-password" required></div>
-        <button class="primary-button login-button" type="submit"><span>Sign in to dashboard</span><span aria-hidden="true">→</span></button>
+        <button class="primary-button login-button" type="submit" disabled><span>Sign in to dashboard</span><span aria-hidden="true">→</span></button>
       </form>
-      <p id="login-status" class="login-status" role="status" aria-live="polite">Your studio account is protected with Firebase Authentication.</p>
-      <a class="back-home" href="/workers/drive-poc/ADMIN_ACCOUNT_SETUP.md">Admin account setup guide</a>
+      <p id="login-status" class="login-status" role="status" aria-live="polite">Checking for an existing studio session…</p>
       <a class="back-home" href="/">← Return to studio website</a>
     </section>
-    <p class="login-foot">PRIVATE CLIENT GALLERIES · MR DIGITAL STUDIO</p>
+  </main>
+
+  <main id="auth-loading" class="auth-loading" role="status" aria-live="polite">
+    <span class="loading-spinner" aria-hidden="true"></span>
+    <span>Restoring your studio session…</span>
   </main>
 
   <div id="admin-app" class="admin-app" hidden>
     <header class="topbar">
-      <a class="app-brand" href="/admin"><span class="brand-mark"><svg class="icon"><use href="#i-camera"/></svg></span><span><strong>MR DIGITAL STUDIO</strong><small>PHOTO SELECTION</small></span></a>
+      <a class="app-brand" href="/admin" aria-label="Reload admin dashboard"><span class="brand-mark"><svg class="icon"><use href="#i-camera"/></svg></span><span><strong>MR DIGITAL STUDIO</strong><small>PHOTOGRAPHY</small></span></a>
       <div class="account-menu"><span class="account-avatar" id="account-avatar">M</span><span class="account-email" id="account-email">Studio admin</span><button id="sign-out" class="quiet-button" type="button"><svg class="icon"><use href="#i-exit"/></svg><span>Sign out</span></button></div>
     </header>
 
     <main class="dashboard">
-      <div class="page-heading"><div><p class="eyebrow">PHOTOGRAPHER WORKSPACE</p><h1>Project dashboard</h1><p>Manage your wedding galleries and client selections.</p></div><button id="refresh-projects" class="outline-button" type="button"><svg class="icon"><use href="#i-refresh"/></svg>Refresh</button></div>
 
       <section class="summary-grid" aria-label="Project totals">
         <article class="summary-card"><span class="summary-icon warm"><svg class="icon"><use href="#i-camera"/></svg></span><div><span class="summary-label">Total projects</span><strong id="total-projects">—</strong></div></article>
@@ -75,7 +80,7 @@
 
       <section class="projects-panel" id="projects-panel" aria-busy="false">
         <div class="panel-heading"><div><p class="eyebrow">GALLERY OVERVIEW</p><h2>Your projects</h2></div><span id="project-count" class="result-count" aria-live="polite">Loading…</span></div>
-        <div class="toolbar"><label class="search-box"><svg class="icon"><use href="#i-search"/></svg><input id="project-search" type="search" placeholder="Search by project, client or ID" autocomplete="off"></label><label class="filter-select"><span>Status</span><select id="project-status-filter"><option value="all">All projects</option><option value="pending">Awaiting selection</option><option value="submitted">Submitted</option><option value="reopened">Resubmission enabled</option></select></label><label class="filter-select"><span>Sort by</span><select id="project-sort"><option value="updated-desc">Last updated</option><option value="created-desc">Newest created</option><option value="created-asc">Oldest created</option><option value="name-asc">Project name A–Z</option><option value="name-desc">Project name Z–A</option><option value="photos-desc">Most photos</option><option value="photos-asc">Fewest photos</option><option value="selected-desc">Most selected</option><option value="selected-asc">Fewest selected</option></select></label><details class="column-picker"><summary><svg class="icon"><use href="#i-columns"/></svg><span>Choose columns</span></summary><div class="column-menu" id="column-menu"><strong>Show columns</strong><label><input type="checkbox" data-column-toggle="project" checked>Project</label><label><input type="checkbox" data-column-toggle="projectId">Project ID</label><label><input type="checkbox" data-column-toggle="dates" checked>Created / updated</label><label><input type="checkbox" data-column-toggle="photos" checked>Photos</label><label><input type="checkbox" data-column-toggle="limit" checked>Limit</label><label><input type="checkbox" data-column-toggle="selected" checked>Selected</label><label><input type="checkbox" data-column-toggle="submission" checked>Submission</label><label><input type="checkbox" data-column-toggle="actions" checked>Actions</label></div></details></div>
+        <div class="toolbar"><label class="search-box"><svg class="icon"><use href="#i-search"/></svg><input id="project-search" type="search" placeholder="Search by project, client or ID" autocomplete="off"></label><label class="filter-select"><span>Status</span><select id="project-status-filter"><option value="all">All projects</option><option value="pending">Awaiting selection</option><option value="submitted">Submitted</option><option value="reopened">Resubmission enabled</option><option value="locked">Locked</option></select></label><label class="filter-select"><span>Sort by</span><select id="project-sort"><option value="updated-desc">Last updated</option><option value="created-desc">Newest created</option><option value="created-asc">Oldest created</option><option value="name-asc">Project name A–Z</option><option value="name-desc">Project name Z–A</option><option value="photos-desc">Most photos</option><option value="photos-asc">Fewest photos</option><option value="selected-desc">Most selected</option><option value="selected-asc">Fewest selected</option></select></label><details class="column-picker"><summary><svg class="icon"><use href="#i-columns"/></svg><span>Choose columns</span></summary><div class="column-menu" id="column-menu"><strong>Show columns</strong><label><input type="checkbox" data-column-toggle="project" checked>Project</label><label><input type="checkbox" data-column-toggle="projectId">Project ID</label><label><input type="checkbox" data-column-toggle="dates" checked>Created / updated</label><label><input type="checkbox" data-column-toggle="photos" checked>Photos</label><label><input type="checkbox" data-column-toggle="limit" checked>Limit</label><label><input type="checkbox" data-column-toggle="selected" checked>Selected</label><label><input type="checkbox" data-column-toggle="submission" checked>Submission</label><label><input type="checkbox" data-column-toggle="actions" checked>Actions</label></div></details><button id="refresh-projects" class="outline-button refresh-toolbar-button" type="button"><svg class="icon"><use href="#i-refresh"/></svg>Refresh</button></div>
         <div class="table-scroll"><table class="project-table"><thead><tr><th data-col="project"><button class="sort-button" data-sort="project" type="button">PROJECT <span>↕</span></button></th><th data-col="projectId">PROJECT ID</th><th data-col="dates"><button class="sort-button" data-sort="created" type="button">CREATED / UPDATED <span>↕</span></button></th><th data-col="photos"><button class="sort-button" data-sort="photos" type="button">PHOTOS <span>↕</span></button></th><th data-col="limit">LIMIT</th><th data-col="selected"><button class="sort-button" data-sort="selected" type="button">SELECTED <span>↕</span></button></th><th data-col="submission">SUBMISSION</th><th data-col="actions" class="actions-head">ACTIONS</th></tr></thead><tbody id="projects"></tbody></table></div>
         <div id="empty-projects" class="empty-state" hidden><span class="empty-icon"><svg class="icon"><use href="#i-camera"/></svg></span><h3>No projects to show</h3><p>Your galleries will appear here once available.</p></div>
         <div id="table-status" class="table-status" role="status" aria-live="polite"></div>
@@ -91,10 +96,19 @@
         </section>
       </dialog>
 
+      <dialog id="confirm-dialog" class="confirm-dialog" aria-labelledby="confirm-title" aria-describedby="confirm-message">
+        <section class="confirm-card">
+          <span class="confirm-icon" id="confirm-icon"><svg class="icon"><use href="#i-lock"/></svg></span>
+          <h2 id="confirm-title">Confirm action</h2>
+          <p id="confirm-message"></p>
+          <div class="confirm-actions"><button id="confirm-cancel" class="outline-button" type="button">Cancel</button><button id="confirm-accept" class="primary-button" type="button">Confirm</button></div>
+        </section>
+      </dialog>
+
       <p id="status" class="toast-status" role="status" aria-live="polite"></p>
     </main>
   </div>
   <script src="/select/gallery-config.js"></script>
-  <script src="/select/admin.js"></script>
+  <script type="module" src="/select/admin.js"></script>
 </body>
 </html>
