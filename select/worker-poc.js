@@ -20,6 +20,7 @@
   const viewerFilename = document.getElementById("viewer-filename");
   const viewerCounter = document.getElementById("viewer-counter");
   const viewerSelect = document.getElementById("viewer-select");
+  const viewerDownload = document.getElementById("viewer-download");
   const galleryTools = document.getElementById("gallery-tools");
   const photoSearch = document.getElementById("photo-search");
   const photoSort = document.getElementById("photo-sort");
@@ -48,6 +49,8 @@
   let viewerFullUrl = "";
   let viewerRequestId = 0;
   let imageGeneration = 0;
+  const photoBlobs = new Map();
+  const photoBlobRequests = new Map();
   const imageQueue = [];
   let activeImageLoads = 0;
   const maxConcurrentImageLoads = 4;
@@ -66,8 +69,31 @@
     status.className = `status ${type}`.trim();
   }
 
+  async function getPhotoBlob(photo) {
+    if (photoBlobs.has(photo.id)) return photoBlobs.get(photo.id);
+    if (photoBlobRequests.has(photo.id)) return photoBlobRequests.get(photo.id);
+    const request = (async () => {
+      const response = await fetch(`${workerUrl}/api/photos/${encodeURIComponent(photo.id)}`, {
+        headers: { Authorization: `Bearer ${sessionToken}` },
+      });
+      if (!response.ok) {
+        const result = await response.json().catch(() => ({}));
+        throw new Error(result.error || `Could not load ${photo.name}`);
+      }
+      const blob = await response.blob();
+      photoBlobs.set(photo.id, blob);
+      return blob;
+    })();
+    photoBlobRequests.set(photo.id, request);
+    try {
+      return await request;
+    } finally {
+      if (photoBlobRequests.get(photo.id) === request) photoBlobRequests.delete(photo.id);
+    }
+  }
+
   function renderSelectionState() {
-    const hasUnsavedChanges = selected.size !== savedSelected.size || [...selected].some(photoId => !savedSelected.has(photoId));
+    const hasUnsavedChanges = hasUnsavedSelectionChanges();
     summary.textContent = selectionLimit
       ? `${selected.size} / ${selectionLimit} selected${selected.size >= selectionLimit ? " · limit reached" : ""}${hasUnsavedChanges ? " · unsaved changes" : ""}`
       : `${selected.size} selected${hasUnsavedChanges ? " · unsaved changes" : ""}`;
@@ -82,6 +108,8 @@
       button.textContent = isSelected ? "✓  SELECTED" : "+  SELECT PHOTO";
       button.setAttribute("aria-pressed", String(isSelected));
       button.disabled = Boolean(submittedAt) && !resubmissionEnabled || pendingSaves > 0;
+      const downloadButton = figure.querySelector(".photo-download");
+      downloadButton.disabled = pendingSaves > 0;
     });
     renderGallery();
     renderViewerSelectionState();
@@ -101,11 +129,15 @@
       return mode === "name-desc" ? -byName : byName;
     });
     const query = photoSearch.value.trim().toLocaleLowerCase();
+    const sortedCards = photos.map(photo => photosElement.querySelector(`[data-photo-id="${CSS.escape(photo.id)}"]`)).filter(Boolean);
+    const currentCards = [...photosElement.children];
+    if (sortedCards.some((card, index) => card !== currentCards[index])) {
+      sortedCards.forEach(card => photosElement.append(card));
+    }
     photos.forEach(photo => {
       const card = photosElement.querySelector(`[data-photo-id="${CSS.escape(photo.id)}"]`);
       if (!card) return;
       card.hidden = !photo.name.toLocaleLowerCase().includes(query);
-      photosElement.append(card);
     });
     if (currentViewerId) {
       viewerIndex = photos.findIndex(photo => photo.id === currentViewerId);
@@ -136,6 +168,7 @@
     photosElement.querySelectorAll("img").forEach(image => {
       if (image.src.startsWith("blob:")) URL.revokeObjectURL(image.src);
     });
+    photos.forEach(photo => photoBlobs.delete(photo.id));
     photosElement.replaceChildren();
   }
 
@@ -184,7 +217,7 @@
       viewerFullUrl = "";
       viewerPhotoId = photo.id;
       viewerImage.src = cardImage?.src || "";
-      if (cardImage?.dataset.imageState !== "loaded") loadFullViewerPhoto(photo, viewerRequestId);
+      if (!photoBlobs.has(photo.id)) loadFullViewerPhoto(photo, viewerRequestId);
     } else if (viewerFullUrl) {
       viewerImage.src = viewerFullUrl;
     } else if (cardImage?.src) {
@@ -198,11 +231,8 @@
 
   async function loadFullViewerPhoto(photo, requestId) {
     try {
-      const response = await fetch(`${workerUrl}/api/photos/${encodeURIComponent(photo.id)}`, {
-        headers: { Authorization: `Bearer ${sessionToken}` },
-      });
-      if (!response.ok) return;
-      const fullUrl = URL.createObjectURL(await response.blob());
+      const blob = await getPhotoBlob(photo);
+      const fullUrl = URL.createObjectURL(blob);
       if (!viewer.open || viewerPhotoId !== photo.id || requestId !== viewerRequestId) {
         URL.revokeObjectURL(fullUrl);
         return;
@@ -218,11 +248,37 @@
   function renderViewerSelectionState() {
     const currentPhotos = visiblePhotos();
     if (viewerIndex < 0 || !currentPhotos[viewerIndex]) return;
-    const isSelected = selected.has(currentPhotos[viewerIndex].id);
+    const photo = currentPhotos[viewerIndex];
+    const isSelected = selected.has(photo.id);
     viewerSelect.textContent = isSelected ? "✓  SELECTED" : "+  SELECT PHOTO";
     viewerSelect.classList.toggle("is-selected", isSelected);
     viewerSelect.setAttribute("aria-pressed", String(isSelected));
     viewerSelect.disabled = Boolean(submittedAt) && !resubmissionEnabled || pendingSaves > 0;
+    viewerDownload.disabled = pendingSaves > 0;
+    viewerDownload.setAttribute("aria-label", `Download ${photo.name}`);
+    viewerDownload.title = `Download ${photo.name}`;
+  }
+
+  async function downloadPhoto(photo, button) {
+    if (button.disabled) return;
+    button.disabled = true;
+    button.classList.add("is-loading");
+    try {
+      const blob = await getPhotoBlob(photo);
+      const objectUrl = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = objectUrl;
+      link.download = photo.name;
+      document.body.append(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+    } catch (error) {
+      setStatus(error.message || "Could not download this photo.", "error");
+    } finally {
+      button.disabled = false;
+      button.classList.remove("is-loading");
+    }
   }
 
   function openViewer(photo) {
@@ -252,16 +308,21 @@
 
   async function saveSelectionChanges() {
     if (pendingSaves || saveSelectionsButton.disabled) return;
-    const changedPhotoIds = new Set([...savedSelected, ...selected]);
-    const changes = [...changedPhotoIds].filter(photoId => selected.has(photoId) !== savedSelected.has(photoId));
-    if (!changes.length) return;
+    const selectionToSave = new Set(selected);
+    const changedPhotoIds = new Set([...savedSelected, ...selectionToSave]);
+    const changes = [...changedPhotoIds]
+      .filter(photoId => selectionToSave.has(photoId) !== savedSelected.has(photoId))
+      .map(photoId => ({ photoId, isSelected: selectionToSave.has(photoId) }));
+    if (!changes.length) {
+      renderSelectionState();
+      return;
+    }
     pendingSaves = 1;
     saveSelectionsButton.classList.add("is-loading");
     saveSelectionsButton.innerHTML = '<span class="loading-spinner" aria-hidden="true"></span> Saving…';
     renderSelectionState();
     try {
-      const results = await Promise.allSettled(changes.map(async photoId => {
-        const isSelected = selected.has(photoId);
+      const results = await Promise.allSettled(changes.map(async ({ photoId, isSelected }) => {
         const response = await fetch(`${workerUrl}/api/selections/${encodeURIComponent(photoId)}`, {
           method: "PUT",
           headers: { Authorization: `Bearer ${sessionToken}`, "Content-Type": "application/json" },
@@ -296,20 +357,20 @@
     imageQueue.push(async () => {
       if (generation !== imageGeneration || !image.isConnected) return;
       image.dataset.imageState = "loading";
+      image._media.dataset.state = "loading";
       try {
-        const response = await fetch(`${workerUrl}/api/photos/${encodeURIComponent(photo.id)}`, {
-          headers: { Authorization: `Bearer ${sessionToken}` },
-        });
-        if (!response.ok) throw new Error(`Could not load ${photo.name}`);
-        const objectUrl = URL.createObjectURL(await response.blob());
+        const blob = await getPhotoBlob(photo);
+        const objectUrl = URL.createObjectURL(blob);
         if (generation !== imageGeneration || !image.isConnected) {
           URL.revokeObjectURL(objectUrl);
           return;
         }
         image.src = objectUrl;
         image.dataset.imageState = "loaded";
+        image._media.dataset.state = "loaded";
       } catch {
         image.dataset.imageState = "failed";
+        image._media.dataset.state = "failed";
         image.alt = `Photo unavailable: ${photo.name}`;
       }
     });
@@ -339,6 +400,15 @@
     image.setAttribute("aria-label", `View ${photo.name} full screen`);
     image._photo = photo;
     image._generation = imageGeneration;
+    const media = document.createElement("div");
+    media.className = "photo-media";
+    media.dataset.state = "queued";
+    image._media = media;
+    const loadingState = document.createElement("div");
+    loadingState.className = "photo-loading";
+    loadingState.setAttribute("aria-hidden", "true");
+    loadingState.innerHTML = '<span class="photo-loading-spinner"></span><span class="photo-loading-label">Loading photo</span><span class="photo-failed-label">Photo unavailable</span>';
+    media.append(image, loadingState);
     image.addEventListener("click", () => openViewer(photo));
     image.addEventListener("keydown", event => {
       if (event.key === "Enter" || event.key === " ") {
@@ -357,7 +427,19 @@
     button.setAttribute("aria-pressed", String(isSelected));
       button.disabled = Boolean(submittedAt) && !resubmissionEnabled;
     button.addEventListener("click", () => toggleSelection(photo, button));
-    figure.append(image, caption, button);
+    const actions = document.createElement("div");
+    actions.className = "photo-actions";
+    actions.append(button);
+    const downloadButton = document.createElement("button");
+    downloadButton.type = "button";
+    downloadButton.className = "photo-download";
+    downloadButton.disabled = pendingSaves > 0;
+    downloadButton.setAttribute("aria-label", `Download ${photo.name}`);
+    downloadButton.title = `Download ${photo.name}`;
+    downloadButton.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v11m0 0 4-4m-4 4-4-4M5 16v4h14v-4"/></svg>';
+    downloadButton.addEventListener("click", () => downloadPhoto(photo, downloadButton));
+    actions.append(downloadButton);
+    figure.append(media, caption, actions);
     photosElement.append(figure);
     renderGallery();
     if (previewObserver) previewObserver.observe(image);
@@ -511,6 +593,10 @@
     if (!photo) return;
     const cardButton = photosElement.querySelector(`[data-photo-id="${CSS.escape(photo.id)}"] .selection-toggle`);
     if (cardButton) toggleSelection(photo, cardButton);
+  });
+  viewerDownload.addEventListener("click", () => {
+    const photo = visiblePhotos()[viewerIndex];
+    if (photo) downloadPhoto(photo, viewerDownload);
   });
 
   function confirmSubmission() {

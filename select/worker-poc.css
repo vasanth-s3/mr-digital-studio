@@ -47,6 +47,17 @@
 .submit-panel p:last-child{font-size:12px}
 .selection-toolbar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:0 0 9px}
 .selection-summary{min-height:0;margin:0;color:#68655d;font-size:11px}
+.photo-actions{display:flex;align-items:center;gap:8px;margin:0 13px 13px}
+.photo .selection-toggle{width:auto;flex:1;margin:0}
+.photo-download,.viewer-download{width:36px;height:34px;flex:none;display:grid;place-items:center;border:1px solid #dfdbd2;background:#fff;color:var(--accent-dark);cursor:pointer;transition:background .18s,border-color .18s,color .18s}
+.photo-download:hover:not(:disabled),.viewer-download:hover:not(:disabled){border-color:var(--accent);background:var(--accent);color:#fff}
+.photo-download:disabled,.viewer-download:disabled{opacity:.6;cursor:wait}
+.photo-download svg,.viewer-download svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.photo-download.is-loading svg,.viewer-download.is-loading svg{animation:download-pulse .8s ease-in-out infinite alternate}
+.viewer-actions{display:flex;align-items:center;gap:9px}
+.viewer-download{width:39px;height:39px;border-color:#ffffff47;background:transparent;color:#fff}
+@keyframes download-pulse{to{opacity:.35;transform:translateY(2px)}}
+@media(max-width:640px){.photo-actions{margin:0 9px 9px}.photo-download{width:34px;height:32px}}
 .save-selections{min-height:38px;display:inline-flex;align-items:center;justify-content:center;gap:9px;padding:0 16px;border:1px solid #d7c3a8;border-radius:3px;background:#fff;color:var(--accent-dark);font:600 10px "DM Sans",Arial,sans-serif;letter-spacing:.04em;cursor:pointer;transition:background .18s,border-color .18s,color .18s}
 .save-selections.has-changes{border-color:var(--accent);background:var(--accent);color:#fff}
 .save-selections:hover:not(:disabled){border-color:var(--accent-dark);background:var(--accent-dark);color:#fff}
@@ -71,3 +82,27 @@ button:disabled{cursor:not-allowed!important}
 .client-site-footer{min-height:66px;padding:20px 24px;display:flex;align-items:center;justify-content:center;border-top:1px solid #e5e1d8;background:#f5f3ed;color:#817e74;text-align:center}
 .client-site-footer p,.admin-site-footer p{margin:0;font-size:12px}
 @media(max-width:640px){.client-site-header-inner{min-height:70px;padding:8px 16px}.client-site-header .brand-logo{width:48px;height:48px}.client-site-header .client-brand strong{font-size:18px}.client-site-header .client-brand small{font-size:7px;letter-spacing:2.6px}.client-site-header .leave-gallery{height:35px;min-height:35px;padding:0 9px;gap:7px;font-size:9px}.shell{padding-top:22px}.client-site-footer{min-height:56px;padding:16px 12px}.client-site-footer p{font-size:10px}}
+.photo-media{position:relative;width:100%;aspect-ratio:4/3;overflow:hidden;background:#e8e4de}
+.photo-media>img{position:absolute;inset:0;width:100%;height:100%;aspect-ratio:auto;object-fit:cover;opacity:0;transition:opacity .24s ease}
+.photo-media[data-state=loaded]>img{opacity:1}
+.photo-loading{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:11px;background:linear-gradient(110deg,#e9e6df 8%,#f5f3ee 18%,#e9e6df 33%);background-size:200% 100%;color:#7d786e;font-size:10px;letter-spacing:.06em;animation:photo-shimmer 1.6s linear infinite}
+.photo-loading-spinner{width:23px;height:23px;border:2px solid #cbbda8;border-top-color:#997647;border-radius:50%;animation:gallery-spin .8s linear infinite}
+.photo-failed-label{display:none}
+.photo-media[data-state=loaded] .photo-loading{display:none}
+.photo-media[data-state=failed] .photo-loading{gap:0;background:#eeece6;animation:none}
+.photo-media[data-state=failed] .photo-loading-spinner,.photo-media[data-state=failed] .photo-loading-label{display:none}
+.photo-media[data-state=failed] .photo-failed-label{display:block}
+@keyframes photo-shimmer{to{background-position:-200% 0}}
+@media(prefers-reduced-motion:reduce){.photo-loading,.photo-loading-spinner{animation:none}.photo-media>img{transition:none}}
+body:has(#access-screen:not([hidden])){height:100dvh;min-height:0;display:flex;flex-direction:column;overflow:hidden}
+body:has(#access-screen:not([hidden])) .client-site-header,body:has(#access-screen:not([hidden])) .client-site-footer{flex:none}
+body:has(#access-screen:not([hidden])) .shell{width:100%;max-width:none;min-height:0;flex:1;display:flex;align-items:center;justify-content:center;padding:clamp(10px,2vh,22px) clamp(16px,3vw,48px)}
+body:has(#access-screen:not([hidden])) .access-screen{width:min(1110px,100%);height:100%;min-height:0;margin:0;grid-template-columns:1.02fr .98fr}
+body:has(#access-screen:not([hidden])) .access-photo{min-height:0}
+body:has(#access-screen:not([hidden])) .access-content{padding:clamp(24px,4vh,54px) clamp(28px,4vw,64px)}
+body:has(#access-screen:not([hidden])) .access-content h1{font-size:clamp(34px,4vw,52px)}
+body:has(#access-screen:not([hidden])) .intro{margin:14px 0 24px}
+body:has(#access-screen:not([hidden])) .access-assurance{margin-top:20px;padding-top:13px}
+@media(max-width:640px){body:has(#access-screen:not([hidden])) .client-site-header-inner{min-height:64px;padding:6px 16px}body:has(#access-screen:not([hidden])) .shell{padding:10px 14px}body:has(#access-screen:not([hidden])) .access-screen{grid-template-columns:1fr;grid-template-rows:minmax(120px,.7fr) minmax(0,1.3fr)}body:has(#access-screen:not([hidden])) .access-photo{min-height:0;background-position:center 38%}body:has(#access-screen:not([hidden])) .photo-caption{bottom:12px;left:16px}body:has(#access-screen:not([hidden])) .access-content{padding:16px 22px}body:has(#access-screen:not([hidden])) .access-content .eyebrow{margin-bottom:8px}body:has(#access-screen:not([hidden])) .access-content h1{font-size:clamp(28px,8vw,38px)}body:has(#access-screen:not([hidden])) .intro{margin:8px 0 14px;font-size:11px;line-height:1.55}body:has(#access-screen:not([hidden])) .connect-form{gap:6px}body:has(#access-screen:not([hidden])) .access-input-wrap{height:42px}body:has(#access-screen:not([hidden])) .connect-form button{height:42px;margin-top:5px}body:has(#access-screen:not([hidden])) .status{min-height:16px;margin:6px 0 0;font-size:10px}body:has(#access-screen:not([hidden])) .access-assurance{margin-top:8px;padding-top:7px;font-size:9px}}
+@media(max-height:720px){body:has(#access-screen:not([hidden])) .client-site-header-inner{min-height:62px}body:has(#access-screen:not([hidden])) .client-site-footer{min-height:48px;padding:12px}body:has(#access-screen:not([hidden])) .access-content{padding-top:14px;padding-bottom:14px}body:has(#access-screen:not([hidden])) .access-content h1{font-size:clamp(29px,3.4vw,42px)}body:has(#access-screen:not([hidden])) .intro{margin:8px 0 14px;font-size:11px}body:has(#access-screen:not([hidden])) .access-assurance{margin-top:9px;padding-top:8px}}
+@media(max-width:640px) and (max-height:720px){body:has(#access-screen:not([hidden])) .access-screen{grid-template-rows:minmax(90px,.45fr) minmax(0,1.55fr)}body:has(#access-screen:not([hidden])) .access-content{padding:10px 18px}body:has(#access-screen:not([hidden])) .access-content h1{font-size:28px}body:has(#access-screen:not([hidden])) .intro{margin:6px 0 10px}body:has(#access-screen:not([hidden])) .access-assurance{display:none}}
