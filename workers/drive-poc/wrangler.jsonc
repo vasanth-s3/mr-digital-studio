@@ -6,7 +6,7 @@
   "workers_dev": true,
   "vars": {
     "FIREBASE_PROJECT_ID": "mr-studio-photo-gallery",
-    "ALLOWED_ORIGIN": "http://localhost:8010"
+    "ALLOWED_ORIGINS": "http://localhost:8010,https://mr-digital-studio.vercel.app"
   },
   "ratelimits": [
     {

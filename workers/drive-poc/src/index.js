@@ -703,14 +703,16 @@ async function importPrivateKey(pem) {
 
 function corsHeaders(request, env) {
   const origin = request.headers.get("Origin");
-  if (!origin || origin !== env.ALLOWED_ORIGIN) return {};
-  return { "Access-Control-Allow-Origin": env.ALLOWED_ORIGIN, "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, OPTIONS", "Access-Control-Allow-Headers": "Authorization, Content-Type", "Vary": "Origin" };
+  const allowedOrigins = (env.ALLOWED_ORIGINS || env.ALLOWED_ORIGIN || "").split(",").map(value => value.trim()).filter(Boolean);
+  if (!origin || !allowedOrigins.includes(origin)) return {};
+  return { "Access-Control-Allow-Origin": origin, "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, OPTIONS", "Access-Control-Allow-Headers": "Authorization, Content-Type", "Vary": "Origin" };
 }
 
 function assertConfigured(env) {
-  for (const name of ["FIREBASE_PROJECT_ID", "SESSION_SECRET", "GOOGLE_SERVICE_ACCOUNT_JSON", "ALLOWED_ORIGIN"]) {
+  for (const name of ["FIREBASE_PROJECT_ID", "SESSION_SECRET", "GOOGLE_SERVICE_ACCOUNT_JSON"]) {
     if (!env[name]) throw new Error(`Missing Worker setting: ${name}`);
   }
+  if (!env.ALLOWED_ORIGINS && !env.ALLOWED_ORIGIN) throw new Error("Missing Worker setting: ALLOWED_ORIGINS");
 }
 
 function firestoreDocumentUrl(path, env) {
