@@ -3177,6 +3177,51 @@ a.underline-text:hover {
     font-weight: 400;
     font-family: 'Barlow Condensed', sans-serif;
 }
+#contact .form-group label {
+    display: block;
+    margin: 0 0 4px;
+    color: #777;
+    font-family: 'Didact Gothic', sans-serif;
+    font-size: 13px;
+    line-height: 1.4;
+}
+.contact-enquiry-form {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 22px;
+}
+.contact-enquiry-form > input[type="hidden"] {
+    display: none;
+}
+.contact-enquiry-form > .col-sm-6,
+.contact-enquiry-form > .col-sm-12 {
+    width: auto;
+    padding-right: 0;
+    padding-left: 0;
+}
+.contact-enquiry-form > .col-sm-12 {
+    grid-column: 1 / -1;
+}
+.contact-enquiry-form .form-group {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    margin-bottom: 20px;
+}
+.contact-enquiry-form .form-control {
+    display: block;
+    width: 100%;
+    margin: 0;
+}
+.contact-enquiry-form button:disabled {
+    cursor: wait;
+    opacity: .7;
+}
+@media only screen and (max-width: 575px) {
+    .contact-enquiry-form {
+        grid-template-columns: 1fr;
+    }
+}
 @media only screen and (max-width: 767px) {
     .footer-section .sub-footer p {
         text-align: left;

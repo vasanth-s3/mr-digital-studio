@@ -25,6 +25,10 @@ export default {
         return await createProject(request, env, cors);
       }
       const projectMatch = url.pathname.match(/^\/api\/admin\/projects\/([A-Za-z0-9_-]+)$/);
+      if (projectMatch && request.method === "PUT") {
+        await requireSession(request, env, "admin");
+        return await updateProjectDetails(projectMatch[1], request, env, cors);
+      }
       if (projectMatch && request.method === "PATCH") {
         await requireSession(request, env, "admin");
         return await updateProjectStatus(projectMatch[1], request, env, cors);
@@ -56,7 +60,9 @@ export default {
       if (url.pathname === "/api/photos" && request.method === "GET") {
         const session = await requireSession(request, env, "client");
         await requireActiveProject(session.projectId, env);
-        return json({ photos: await listPhotos(env, session) }, 200, { ...cors, "Cache-Control": "no-store" });
+        const pageSize = Math.min(60, Math.max(1, Number.parseInt(url.searchParams.get("pageSize") || "10", 10) || 10));
+        const pageToken = url.searchParams.get("pageToken") || "";
+        return json(await listPhotoPage(env, session, pageSize, pageToken), 200, { ...cors, "Cache-Control": "no-store" });
       }
       if (url.pathname === "/api/selections" && request.method === "GET") {
         const session = await requireSession(request, env, "client");
@@ -197,7 +203,12 @@ async function createProject(request, env, cors) {
   if (!body) return json({ error: "Invalid request" }, 400, cors);
   const clientName = cleanText(body.clientName, 100);
   const projectName = cleanText(body.projectName, 120);
+  const clientPhone = cleanText(body.clientPhone, 30);
   const folderId = extractFolderId(body.driveFolder);
+  const phoneDigits = clientPhone.replace(/\D/g, "");
+  if (!clientPhone || !/^\+?[\d\s().-]+$/.test(clientPhone) || phoneDigits.length < 7 || phoneDigits.length > 15) {
+    return json({ error: "Enter a valid client phone number with 7 to 15 digits." }, 400, cors);
+  }
   const selectionLimit = body.selectionLimit === null || body.selectionLimit === undefined || body.selectionLimit === ""
     ? null
     : Number(body.selectionLimit);
@@ -221,7 +232,7 @@ async function createProject(request, env, cors) {
   const createdAt = new Date().toISOString();
   const photoCount = await countDrivePhotos(googleToken, folderId);
   const projectFields = {
-    clientName: { stringValue: clientName }, projectName: { stringValue: projectName },
+    clientName: { stringValue: clientName }, clientPhone: { stringValue: clientPhone }, projectName: { stringValue: projectName },
     driveFolderId: { stringValue: folderId }, createdAt: { timestampValue: createdAt }, updatedAt: { timestampValue: createdAt },
     photoCount: { integerValue: String(photoCount) },
     status: { stringValue: "active" }, selectedCount: { integerValue: "0" }, accessCodeHash: { stringValue: codeHash },
@@ -237,9 +248,69 @@ async function createProject(request, env, cors) {
     body: JSON.stringify({ writes }),
   });
   if (!commitResponse.ok) throw await firestoreError(commitResponse);
-  const clientUrl = new URL(`${env.ALLOWED_ORIGIN.replace(/\/$/, "")}/select/worker-poc.html`);
+  const clientUrl = new URL(`${env.ALLOWED_ORIGIN.replace(/\/$/, "")}/select`);
   clientUrl.searchParams.set("project", projectId);
-  return json({ project: { id: projectId, clientName, projectName, driveFolderName: folder.name, createdAt, selectionLimit }, clientCode, clientUrl: clientUrl.toString() }, 201, { ...cors, "Cache-Control": "no-store" });
+  return json({ project: { id: projectId, clientName, clientPhone, projectName, driveFolderName: folder.name, createdAt, selectionLimit }, clientCode, clientUrl: clientUrl.toString() }, 201, { ...cors, "Cache-Control": "no-store" });
+}
+
+async function updateProjectDetails(projectId, request, env, cors) {
+  const body = await readJson(request);
+  if (!body) return json({ error: "Invalid project details." }, 400, cors);
+  const clientName = cleanText(body.clientName, 100);
+  const projectName = cleanText(body.projectName, 120);
+  const clientPhone = cleanText(body.clientPhone, 30);
+  const folderId = extractFolderId(body.driveFolder);
+  const phoneDigits = clientPhone.replace(/\D/g, "");
+  if (!clientName || !projectName || !folderId) return json({ error: "Enter a client name, project name, and valid Google Drive folder link or ID." }, 400, cors);
+  if (!clientPhone || !/^\+?[\d\s().-]+$/.test(clientPhone) || phoneDigits.length < 7 || phoneDigits.length > 15) {
+    return json({ error: "Enter a valid client phone number with 7 to 15 digits." }, 400, cors);
+  }
+  const rawLimit = body.selectionLimit;
+  const selectionLimit = rawLimit === null || rawLimit === "" ? null : Number(rawLimit);
+  if (selectionLimit !== null && (!Number.isSafeInteger(selectionLimit) || selectionLimit < 1 || selectionLimit > 1000)) {
+    return json({ error: "The photo selection limit must be a whole number from 1 to 1,000, or blank for no limit." }, 400, cors);
+  }
+
+  const project = await getFirestoreDocument(`projects/${projectId}`, env);
+  if (!project || project.fields?.status?.stringValue === "deleted") throw httpError(404, "Project not found.");
+  if (!project.updateTime) throw httpError(409, "This project changed. Refresh the admin page and try again.");
+  const session = { projectId, folder: project.fields.driveFolderId?.stringValue || "" };
+  const selectedCount = project.fields?.selectedCount?.integerValue !== undefined
+    ? Number(project.fields.selectedCount.integerValue)
+    : (await listSelections(env, session)).length;
+  if (selectionLimit !== null && selectionLimit < selectedCount) {
+    return json({ error: `This project already has ${selectedCount} selected photos. Set a limit of at least ${selectedCount}, or remove selections first.` }, 409, cors);
+  }
+
+  const token = await googleAccessToken(env);
+  const folderParams = new URLSearchParams({ fields: "id,name,mimeType,trashed", supportsAllDrives: "true" });
+  const folderResponse = await fetch(`https://www.googleapis.com/drive/v3/files/${encodeURIComponent(folderId)}?${folderParams}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!folderResponse.ok) throw await driveError(folderResponse);
+  const folder = await folderResponse.json();
+  if (folder.trashed || folder.mimeType !== "application/vnd.google-apps.folder") return json({ error: "That Drive link does not point to an accessible folder." }, 400, cors);
+
+  const updatedAt = new Date().toISOString();
+  const photoCount = await countDrivePhotos(token, folderId);
+  const selectionLimitValue = selectionLimit === null ? { nullValue: "NULL_VALUE" } : { integerValue: String(selectionLimit) };
+  await commitFirestoreWrites(env, token, [{
+    update: {
+      name: firestoreDocumentName(`projects/${projectId}`, env),
+      fields: {
+        clientName: { stringValue: clientName },
+        clientPhone: { stringValue: clientPhone },
+        projectName: { stringValue: projectName },
+        driveFolderId: { stringValue: folderId },
+        photoCount: { integerValue: String(photoCount) },
+        selectionLimit: selectionLimitValue,
+        updatedAt: { timestampValue: updatedAt },
+      },
+    },
+    updateMask: { fieldPaths: ["clientName", "clientPhone", "projectName", "driveFolderId", "photoCount", "selectionLimit", "updatedAt"] },
+    currentDocument: { updateTime: project.updateTime },
+  }]);
+  return json({ project: { id: projectId, clientName, clientPhone, projectName, driveFolderName: folder.name, driveFolderId: folderId, photoCount, updatedAt, selectionLimit } }, 200, { ...cors, "Cache-Control": "no-store" });
 }
 
 async function rotateClientCode(projectId, env, cors) {
@@ -327,13 +398,13 @@ async function listProjects(env) {
     const selectedCount = fields.selectedCount?.integerValue !== undefined
       ? Number(fields.selectedCount.integerValue)
       : (await listSelections(env, { projectId: id })).length;
-    const photoCount = fields.photoCount?.integerValue !== undefined
-      ? Number(fields.photoCount.integerValue)
-      : await countDrivePhotos(token, fields.driveFolderId?.stringValue || "");
+    const photoCount = await countDrivePhotos(token, fields.driveFolderId?.stringValue || "");
     return {
       id,
       clientName: fields.clientName?.stringValue || "",
+      clientPhone: fields.clientPhone?.stringValue || "",
       projectName: fields.projectName?.stringValue || "",
+      driveFolderId: fields.driveFolderId?.stringValue || "",
       createdAt: fields.createdAt?.timestampValue || "",
       updatedAt: fields.updatedAt?.timestampValue || document.updateTime || fields.createdAt?.timestampValue || "",
       status: fields.status?.stringValue || "inactive",
@@ -385,6 +456,26 @@ async function listPhotos(env, session) {
   } while (params.has("pageToken"));
   return files.filter(file => file.mimeType?.startsWith("image/"))
     .map(file => ({ id: file.id, name: file.name, mimeType: file.mimeType }));
+}
+
+async function listPhotoPage(env, session, pageSize, pageToken) {
+  const token = await googleAccessToken(env);
+  const params = new URLSearchParams({
+    q: `'${session.folder}' in parents and trashed = false`,
+    pageSize: String(pageSize),
+    orderBy: "name",
+    fields: "files(id,name,mimeType),nextPageToken",
+    supportsAllDrives: "true",
+    includeItemsFromAllDrives: "true",
+  });
+  if (pageToken && pageToken.length <= 4096) params.set("pageToken", pageToken);
+  const response = await fetch(`https://www.googleapis.com/drive/v3/files?${params}`, { headers: { Authorization: `Bearer ${token}` } });
+  if (!response.ok) throw await driveError(response);
+  const result = await response.json();
+  return {
+    photos: (result.files || []).filter(file => file.mimeType?.startsWith("image/")).map(file => ({ id: file.id, name: file.name, mimeType: file.mimeType })),
+    nextPageToken: result.nextPageToken || null,
+  };
 }
 
 async function streamPhoto(fileId, env, cors, session, preview = false) {

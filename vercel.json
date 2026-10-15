@@ -1,6 +1,14 @@
 {
+  "redirects": [
+    { "source": "/select/worker-poc.html", "destination": "/select", "permanent": false },
+    { "source": "/select/", "destination": "/select", "permanent": false },
+    { "source": "/select/index.html", "destination": "/select", "permanent": false }
+  ],
   "rewrites": [
     { "source": "/admin", "destination": "/select/admin.html" },
-    { "source": "/admin/", "destination": "/select/admin.html" }
+    { "source": "/admin/", "destination": "/select/admin.html" },
+    { "source": "/select", "has": [{ "type": "query", "key": "project" }], "destination": "/select/worker-poc.html" },
+    { "source": "/select", "destination": "/404.html" },
+    { "source": "/select/index.html", "destination": "/404.html" }
   ]
 }

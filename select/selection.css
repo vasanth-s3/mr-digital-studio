@@ -505,3 +505,47 @@ body {
         max-height: calc(100vh - 190px)
     }
 }
+
+.brand {
+    gap: 12px;
+    color: var(--ink);
+    font-size: inherit;
+    font-weight: 400;
+    letter-spacing: 0;
+}
+
+.brand .brand-logo {
+    display: block;
+    flex: 0 0 58px;
+    width: 58px;
+    height: 58px;
+    padding: 4px;
+    border-radius: 8px;
+    background: #fff;
+    object-fit: contain;
+}
+
+.brand span {
+    display: grid;
+    gap: 5px;
+}
+
+.brand strong {
+    color: var(--ink);
+    font-family: "Barlow Condensed", Arial, sans-serif;
+    font-size: 22px;
+    font-weight: 400;
+    letter-spacing: .5px;
+    line-height: 1;
+    text-transform: uppercase;
+}
+
+.brand small {
+    color: #f17627;
+    font-family: "Barlow Condensed", Arial, sans-serif;
+    font-size: 9px;
+    font-weight: 300;
+    letter-spacing: 4px;
+    line-height: 1.2;
+    text-transform: uppercase;
+}

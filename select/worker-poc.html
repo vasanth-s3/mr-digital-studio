@@ -3,32 +3,65 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Drive Worker POC | MR Digital Studio</title>
-  <link rel="stylesheet" href="worker-poc.css">
+  <meta name="theme-color" content="#f5f2ec">
+  <title>Your Wedding Gallery | MR Digital Studio</title>
+  <link rel="icon" href="/img/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600&family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/select/worker-poc.css">
 </head>
 <body>
-  <main class="shell">
-    <a class="back-link" href="./">← Back to static demo</a>
-    <p class="eyebrow">PRIVATE PHOTO SELECTION</p>
-    <h1 id="gallery-title">Private Drive gallery</h1>
-    <p id="gallery-subtitle" class="intro">Enter the access code provided by your photographer to view the gallery.</p>
-
-    <form id="connect-form" class="connect-form">
-      <input id="worker-url" type="hidden">
-      <label>Gallery access code<input id="access-code" type="password" placeholder="Enter the code" required autocomplete="one-time-code"></label>
-      <button type="submit">OPEN GALLERY <span>→</span></button>
-    </form>
-    <p id="status" class="status" role="status" aria-live="polite">Enter your access code to begin.</p>
-    <p id="selection-summary" class="selection-summary" aria-live="polite"></p>
-    <div id="gallery-tools" class="gallery-tools" hidden>
-      <label class="photo-search">Search photos<input id="photo-search" type="search" placeholder="Search filenames" autocomplete="off"></label>
-      <label class="photo-sort">Sort by<select id="photo-sort"><option value="name-asc">Filename (A–Z)</option><option value="selected">Selected first</option><option value="name-desc">Filename (Z–A)</option></select></label>
-      <p id="visible-count" class="visible-count" aria-live="polite"></p>
+  <header class="client-site-header">
+    <div class="client-site-header-inner">
+      <a class="client-brand" href="" aria-label="Reload gallery page">
+        <img class="brand-logo" src="/img/mr-digital-studio-logo.svg" alt="">
+        <span><strong>MR Digital Studio</strong><small>Photography</small></span>
+      </a>
+      <button id="leave-gallery" class="leave-gallery" type="button" hidden>Exit gallery <span aria-hidden="true">↗</span></button>
     </div>
-    <section id="photos" class="photos" aria-label="Photos from Google Drive"></section>
-    <section id="submit-panel" class="submit-panel" hidden>
-      <p id="submit-message">Review your choices, then send your final selection to the photographer.</p>
-      <button id="submit-selection" type="button">SEND SELECTION</button>
+  </header>
+  <main class="shell">
+    <section id="access-screen" class="access-screen" aria-labelledby="gallery-title">
+      <div class="access-photo" role="img" aria-label="A wedding portrait captured by MR Digital Studio">
+        <span class="photo-caption">THE ART OF REMEMBERING</span>
+      </div>
+      <div class="access-content">
+        <p class="eyebrow">A PRIVATE COLLECTION</p>
+        <h1 id="gallery-title">Your moments,<br><em>beautifully kept.</em></h1>
+        <p id="gallery-subtitle" class="intro">Enter the private access code shared by your photographer to revisit your wedding photographs.</p>
+        <form id="connect-form" class="connect-form">
+          <input id="worker-url" type="hidden">
+          <label for="access-code">Your gallery access code</label>
+          <div class="access-input-wrap">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+            <input id="access-code" name="access-code" type="password" placeholder="Enter your private code" required autocomplete="one-time-code" aria-describedby="code-hint">
+          </div>
+          <span id="code-hint" class="code-hint">Your code is private and can only open your gallery.</span>
+          <button id="open-gallery" type="submit"><span>Enter your gallery</span><span aria-hidden="true">→</span></button>
+        </form>
+        <p id="status" class="status" role="status" aria-live="polite">Your photographs are just a moment away.</p>
+        <div class="access-assurance"><span aria-hidden="true">✳</span><span>Private, personal, and made just for you.</span></div>
+      </div>
+    </section>
+
+    <section id="gallery-screen" class="gallery-screen" hidden aria-label="Your private wedding gallery">
+      <header class="gallery-header">
+        <div><p class="eyebrow">YOUR PRIVATE COLLECTION</p><h1 id="gallery-heading">Your wedding gallery</h1><p id="gallery-description" class="gallery-description">A collection of moments to keep close.</p></div>
+      </header>
+      <section id="submit-panel" class="submit-panel" hidden>
+        <div><p class="eyebrow">READY WHEN YOU ARE</p><p id="submit-message">Review your choices, then send your final selection to the photographer.</p></div>
+        <button id="submit-selection" type="button">SEND MY SELECTION <span aria-hidden="true">→</span></button>
+      </section>
+      <div class="selection-toolbar"><p id="selection-summary" class="selection-summary" aria-live="polite"></p><button id="save-selections" class="save-selections" type="button" disabled>Save changes</button></div>
+      <div id="gallery-tools" class="gallery-tools" hidden>
+        <label class="photo-search" for="photo-search">Find a moment<input id="photo-search" type="search" placeholder="Search photos on this page" autocomplete="off"></label>
+        <label class="photo-sort" for="photo-sort">Arrange<select id="photo-sort"><option value="name-asc">Filename (A–Z)</option><option value="selected">Selected first</option><option value="name-desc">Filename (Z–A)</option></select></label>
+        <p id="visible-count" class="visible-count" aria-live="polite"></p>
+      </div>
+      <nav class="gallery-pagination" aria-label="Gallery pages" data-gallery-pagination hidden></nav>
+      <div class="photos-wrap"><section id="photos" class="photos" aria-label="Photos from your wedding"></section><div id="gallery-loading" class="gallery-loading" role="status" aria-live="polite" hidden><span class="loading-spinner" aria-hidden="true"></span><span>Loading your photographs…</span></div></div>
+      <nav class="gallery-pagination gallery-pagination-bottom" aria-label="Gallery pages" data-gallery-pagination hidden></nav>
     </section>
   </main>
   <dialog id="photo-viewer" class="photo-viewer" aria-label="Photo viewer">
@@ -44,7 +77,8 @@
       <div class="submit-confirm-actions"><button id="submit-confirm-cancel" type="button">Review photos</button><button id="submit-confirm-accept" type="button">Send selection</button></div>
     </section>
   </dialog>
-  <script src="gallery-config.js"></script>
-  <script src="worker-poc.js"></script>
+  <footer class="client-site-footer"><p>©2026 MR Digital Studio. All rights reserved.</p></footer>
+  <script src="/select/gallery-config.js"></script>
+  <script src="/select/worker-poc.js"></script>
 </body>
 </html>

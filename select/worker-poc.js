@@ -1,12 +1,17 @@
 (() => {
   const form = document.getElementById("connect-form");
   const status = document.getElementById("status");
+  const accessScreen = document.getElementById("access-screen");
+  const galleryScreen = document.getElementById("gallery-screen");
+  const accessButton = document.getElementById("open-gallery");
   const photosElement = document.getElementById("photos");
   const summary = document.getElementById("selection-summary");
-  const galleryTitle = document.getElementById("gallery-title");
-  const gallerySubtitle = document.getElementById("gallery-subtitle");
+  const galleryTitle = document.getElementById("gallery-heading");
+  const gallerySubtitle = document.getElementById("gallery-description");
   const submitPanel = document.getElementById("submit-panel");
   const submitButton = document.getElementById("submit-selection");
+  const saveSelectionsButton = document.getElementById("save-selections");
+  const galleryLoading = document.getElementById("gallery-loading");
   const submitConfirmDialog = document.getElementById("submit-confirm-dialog");
   let submitConfirmResolver = null;
   const submitMessage = document.getElementById("submit-message");
@@ -19,6 +24,8 @@
   const photoSearch = document.getElementById("photo-search");
   const photoSort = document.getElementById("photo-sort");
   const visibleCount = document.getElementById("visible-count");
+  const paginationBars = [...document.querySelectorAll("[data-gallery-pagination]")];
+  const leaveGalleryButton = document.getElementById("leave-gallery");
   const galleryLinkParams = new URLSearchParams(window.location.search);
   const configuredWorkerUrl = window.MRDS_GALLERY_CONFIG?.workerUrl || "";
   document.getElementById("worker-url").value = configuredWorkerUrl;
@@ -26,7 +33,12 @@
   let workerUrl = "";
   let sessionToken = "";
   let photos = [];
+  let pageTokens = [null];
+  let pageIndex = 0;
+  let hasNextPage = false;
+  let pageRequestPending = false;
   let selected = new Set();
+  let savedSelected = new Set();
   let submittedAt = null;
   let resubmissionEnabled = false;
   let pendingSaves = 0;
@@ -39,12 +51,13 @@
   const imageQueue = [];
   let activeImageLoads = 0;
   const maxConcurrentImageLoads = 4;
+  const pageSize = 12;
   const previewObserver = "IntersectionObserver" in window
     ? new IntersectionObserver(entries => entries.forEach(entry => {
       if (!entry.isIntersecting) return;
       const image = entry.target;
       previewObserver.unobserve(image);
-      queuePreview(image._photo, image, image._generation);
+      queuePhotoImage(image._photo, image, image._generation);
     }), { rootMargin: "500px 0px" })
     : null;
 
@@ -53,42 +66,14 @@
     status.className = `status ${type}`.trim();
   }
 
-  async function refreshSubmissionStatus() {
-    if (!sessionToken || !submittedAt) return;
-    try {
-      const response = await fetch(`${workerUrl}/api/submission`, {
-        headers: { Authorization: `Bearer ${sessionToken}` },
-        cache: "no-store",
-      });
-      if (!response.ok) return;
-      const latest = await response.json();
-      const wasReopened = resubmissionEnabled;
-      const wasLocked = Boolean(submittedAt) && !resubmissionEnabled;
-      submittedAt = latest.submittedAt || null;
-      resubmissionEnabled = latest.resubmissionEnabled === true;
-      const isLocked = Boolean(submittedAt) && !resubmissionEnabled;
-      if (wasLocked !== isLocked || wasReopened !== resubmissionEnabled) {
-        renderSelectionState();
-        submitButton.hidden = isLocked;
-        if (resubmissionEnabled) {
-          submitButton.textContent = "RESUBMIT UPDATED SELECTION";
-          submitMessage.textContent = "The photographer reopened your gallery. You can update your choices and send the selection again.";
-          setStatus("The photographer reopened your gallery. You can now update your selection.", "success");
-        } else if (isLocked) {
-          submitMessage.textContent = `Selection submitted on ${new Date(submittedAt).toLocaleString()}. Your choices are now locked.`;
-          submitButton.textContent = "SEND SELECTION";
-          setStatus("Your selection has been submitted and locked.", "success");
-        }
-      }
-    } catch {
-      // A transient status refresh failure should not interrupt gallery browsing.
-    }
-  }
-
   function renderSelectionState() {
+    const hasUnsavedChanges = selected.size !== savedSelected.size || [...selected].some(photoId => !savedSelected.has(photoId));
     summary.textContent = selectionLimit
-      ? `${selected.size} / ${selectionLimit} selected${selected.size >= selectionLimit ? " · limit reached" : ""} · changes save automatically`
-      : `${selected.size} selected · changes save to Firestore automatically`;
+      ? `${selected.size} / ${selectionLimit} selected${selected.size >= selectionLimit ? " · limit reached" : ""}${hasUnsavedChanges ? " · unsaved changes" : ""}`
+      : `${selected.size} selected${hasUnsavedChanges ? " · unsaved changes" : ""}`;
+    saveSelectionsButton.disabled = !hasUnsavedChanges || pendingSaves > 0 || Boolean(submittedAt) && !resubmissionEnabled;
+    saveSelectionsButton.classList.toggle("has-changes", hasUnsavedChanges);
+    submitButton.disabled = hasUnsavedChanges || pendingSaves > 0 || Boolean(submittedAt) && !resubmissionEnabled;
     photosElement.querySelectorAll(".photo").forEach(figure => {
       const photoId = figure.dataset.photoId;
       const isSelected = selected.has(photoId);
@@ -127,7 +112,65 @@
       renderViewer();
     }
     const count = visiblePhotos().length;
-    visibleCount.textContent = `${count} of ${photos.length} photos`;
+    visibleCount.textContent = `${count} on page ${pageIndex + 1}`;
+  }
+
+  function updatePagination() {
+    const lastAvailablePage = pageIndex + (hasNextPage ? 1 : 0);
+    paginationBars.forEach(pagination => {
+      pagination.hidden = lastAvailablePage === 0;
+      const pageButtons = Array.from({ length: lastAvailablePage + 1 }, (_, index) => {
+        const isCurrent = index === pageIndex;
+        return `<button class="gallery-page-number${isCurrent ? " is-current" : ""}" type="button" data-page="${index}" aria-label="Page ${index + 1}"${isCurrent ? ' aria-current="page"' : ""}${pageRequestPending || (index > pageIndex && !hasNextPage) ? " disabled" : ""}>${index + 1}</button>`;
+      }).join("");
+      pagination.innerHTML = `<button class="gallery-page-previous" type="button" data-page-action="previous" aria-label="Previous page"${pageRequestPending || pageIndex === 0 ? " disabled" : ""}>← <span>Previous</span></button><div class="gallery-page-numbers" aria-live="polite">${pageButtons}</div><button class="gallery-page-next" type="button" data-page-action="next" aria-label="Next page"${pageRequestPending || !hasNextPage ? " disabled" : ""}><span>Next</span> →</button>`;
+    });
+    leaveGalleryButton.disabled = pageRequestPending;
+  }
+
+  function clearCurrentPage() {
+    imageGeneration += 1;
+    imageQueue.length = 0;
+    previewObserver?.disconnect();
+    if (viewer.open) viewer.close();
+    photosElement.querySelectorAll("img").forEach(image => {
+      if (image.src.startsWith("blob:")) URL.revokeObjectURL(image.src);
+    });
+    photosElement.replaceChildren();
+  }
+
+  async function changeGalleryPage(nextPageIndex) {
+    if (pageRequestPending || nextPageIndex < 0 || nextPageIndex > pageIndex + 1) return;
+    const pageToken = pageTokens[nextPageIndex];
+    if (nextPageIndex > 0 && !pageToken) return;
+    pageRequestPending = true;
+    galleryLoading.hidden = false;
+    galleryLoading.querySelector("span:last-child").textContent = `Loading page ${nextPageIndex + 1}…`;
+    updatePagination();
+    try {
+      const params = new URLSearchParams({ pageSize: String(pageSize) });
+      if (pageToken) params.set("pageToken", pageToken);
+      const response = await fetch(`${workerUrl}/api/photos?${params}`, {
+        headers: { Authorization: `Bearer ${sessionToken}` },
+        cache: "no-store",
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Could not load this gallery page.");
+      clearCurrentPage();
+      pageIndex = nextPageIndex;
+      pageTokens[pageIndex + 1] = result.nextPageToken || null;
+      hasNextPage = Boolean(result.nextPageToken);
+      photos = result.photos || [];
+      renderSelectionState();
+      photos.forEach(photo => loadPhoto(photo, sessionToken));
+      updatePagination();
+    } catch (error) {
+      setStatus(error.message || "Could not load this gallery page.", "error");
+    } finally {
+      pageRequestPending = false;
+      galleryLoading.hidden = true;
+      updatePagination();
+    }
   }
 
   function renderViewer() {
@@ -141,7 +184,7 @@
       viewerFullUrl = "";
       viewerPhotoId = photo.id;
       viewerImage.src = cardImage?.src || "";
-      loadFullViewerPhoto(photo, viewerRequestId);
+      if (cardImage?.dataset.imageState !== "loaded") loadFullViewerPhoto(photo, viewerRequestId);
     } else if (viewerFullUrl) {
       viewerImage.src = viewerFullUrl;
     } else if (cardImage?.src) {
@@ -203,41 +246,58 @@
       return;
     }
     wasSelected ? selected.delete(photo.id) : selected.add(photo.id);
-    pendingSaves += 1;
-    submitButton.disabled = true;
-    button.disabled = true;
     renderSelectionState();
-    setStatus(`Saving ${photo.name} selection…`);
+    setStatus(`${photo.name} ${wasSelected ? "removed from" : "added to"} your draft. Save changes to keep it.`, "success");
+  }
+
+  async function saveSelectionChanges() {
+    if (pendingSaves || saveSelectionsButton.disabled) return;
+    const changedPhotoIds = new Set([...savedSelected, ...selected]);
+    const changes = [...changedPhotoIds].filter(photoId => selected.has(photoId) !== savedSelected.has(photoId));
+    if (!changes.length) return;
+    pendingSaves = 1;
+    saveSelectionsButton.classList.add("is-loading");
+    saveSelectionsButton.innerHTML = '<span class="loading-spinner" aria-hidden="true"></span> Saving…';
+    renderSelectionState();
     try {
-      const response = await fetch(`${workerUrl}/api/selections/${encodeURIComponent(photo.id)}`, {
-        method: "PUT",
-        headers: { Authorization: `Bearer ${sessionToken}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ selected: !wasSelected }),
+      const results = await Promise.allSettled(changes.map(async photoId => {
+        const isSelected = selected.has(photoId);
+        const response = await fetch(`${workerUrl}/api/selections/${encodeURIComponent(photoId)}`, {
+          method: "PUT",
+          headers: { Authorization: `Bearer ${sessionToken}`, "Content-Type": "application/json" },
+          body: JSON.stringify({ selected: isSelected }),
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || `Could not save ${photoId}`);
+        return { photoId, isSelected };
+      }));
+      const successfulChanges = results.filter(result => result.status === "fulfilled").map(result => result.value);
+      successfulChanges.forEach(({ photoId, isSelected }) => {
+        if (isSelected) savedSelected.add(photoId);
+        else savedSelected.delete(photoId);
       });
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error || "Could not save this selection");
-      setStatus("Selection saved to Firestore.", "success");
+      const failedChanges = results.length - successfulChanges.length;
+      if (failedChanges) setStatus(`${successfulChanges.length} change${successfulChanges.length === 1 ? "" : "s"} saved; ${failedChanges} could not be saved. Please retry.`, "error");
+      else setStatus(`${successfulChanges.length} selection change${successfulChanges.length === 1 ? "" : "s"} saved.`, "success");
     } catch (error) {
-      wasSelected ? selected.add(photo.id) : selected.delete(photo.id);
-      renderSelectionState();
-      setStatus(error.message || "Could not save this selection.", "error");
+      setStatus(`${error.message || "Some changes could not be saved."} Please save again to retry remaining changes.`, "error");
     } finally {
-      pendingSaves -= 1;
-      button.disabled = Boolean(submittedAt) && !resubmissionEnabled || pendingSaves > 0;
-      submitButton.disabled = Boolean(submittedAt) && !resubmissionEnabled || pendingSaves > 0;
+      pendingSaves = 0;
+      saveSelectionsButton.classList.remove("is-loading");
+      saveSelectionsButton.textContent = "Save changes";
       renderSelectionState();
       renderViewerSelectionState();
     }
   }
 
-  function queuePreview(photo, image, generation) {
-    if (image.dataset.previewState) return;
-    image.dataset.previewState = "queued";
+  function queuePhotoImage(photo, image, generation) {
+    if (image.dataset.imageState) return;
+    image.dataset.imageState = "queued";
     imageQueue.push(async () => {
       if (generation !== imageGeneration || !image.isConnected) return;
-      image.dataset.previewState = "loading";
+      image.dataset.imageState = "loading";
       try {
-        const response = await fetch(`${workerUrl}/api/photos/${encodeURIComponent(photo.id)}?size=preview`, {
+        const response = await fetch(`${workerUrl}/api/photos/${encodeURIComponent(photo.id)}`, {
           headers: { Authorization: `Bearer ${sessionToken}` },
         });
         if (!response.ok) throw new Error(`Could not load ${photo.name}`);
@@ -247,10 +307,10 @@
           return;
         }
         image.src = objectUrl;
-        image.dataset.previewState = "loaded";
+        image.dataset.imageState = "loaded";
       } catch {
-        image.dataset.previewState = "failed";
-        image.alt = `Preview unavailable: ${photo.name}`;
+        image.dataset.imageState = "failed";
+        image.alt = `Photo unavailable: ${photo.name}`;
       }
     });
     drainImageQueue();
@@ -301,25 +361,33 @@
     photosElement.append(figure);
     renderGallery();
     if (previewObserver) previewObserver.observe(image);
-    else queuePreview(photo, image, imageGeneration);
+    else queuePhotoImage(photo, image, imageGeneration);
   }
 
   form.addEventListener("submit", async event => {
     event.preventDefault();
+    accessButton.disabled = true;
+    accessButton.classList.add("is-loading");
+    accessButton.querySelector("span").textContent = "Opening your gallery…";
     imageGeneration += 1;
     imageQueue.length = 0;
     previewObserver?.disconnect();
     photosElement.replaceChildren();
     summary.textContent = "";
     selected = new Set();
+    savedSelected = new Set();
     selectionLimit = null;
     galleryTools.hidden = true;
     submitPanel.hidden = true;
     workerUrl = configuredWorkerUrl.trim().replace(/\/$/, "");
     const code = document.getElementById("access-code").value;
-    if (!/^https?:\/\//i.test(workerUrl)) return setStatus("This gallery link is incomplete. Ask the photographer for a new link.", "error");
-    setStatus("Checking access code and connecting to Drive and Firestore…");
-
+    if (!/^https?:\/\//i.test(workerUrl)) {
+      setStatus("This gallery link is incomplete. Ask the photographer for a new link.", "error");
+      accessButton.disabled = false;
+      accessButton.classList.remove("is-loading");
+      accessButton.querySelector("span").textContent = "Enter your gallery";
+      return;
+    }
     try {
       const sessionResponse = await fetch(`${workerUrl}/api/session`, {
         method: "POST",
@@ -337,7 +405,7 @@
 
       const headers = { Authorization: `Bearer ${sessionToken}` };
       const [photoResponse, selectionResponse] = await Promise.all([
-        fetch(`${workerUrl}/api/photos`, { headers }),
+        fetch(`${workerUrl}/api/photos?pageSize=${pageSize}`, { headers }),
         fetch(`${workerUrl}/api/selections`, { headers }),
       ]);
       const photoResult = await photoResponse.json();
@@ -346,8 +414,16 @@
       if (!selectionResponse.ok) throw new Error(selectionResult.error || "Could not load Firestore selections");
 
       photos = photoResult.photos || [];
+      pageTokens = [null, photoResult.nextPageToken || null];
+      pageIndex = 0;
+      hasNextPage = Boolean(photoResult.nextPageToken);
       selected = new Set(selectionResult.selections || []);
+      savedSelected = new Set(selected);
+      accessScreen.hidden = true;
+      galleryScreen.hidden = false;
+      leaveGalleryButton.hidden = false;
       galleryTools.hidden = false;
+      updatePagination();
       photoSearch.value = "";
       photoSort.value = "name-asc";
       renderGallery();
@@ -369,15 +445,51 @@
         submitButton.hidden = false;
       }
       photos.forEach(photo => loadPhoto(photo, sessionToken));
-      setStatus(`Connected. ${photos.length} photos are ready; previews load as you browse.`, "success");
-      window.setInterval(refreshSubmissionStatus, 30000);
     } catch (error) {
       setStatus(error.message || "Could not connect to the Worker.", "error");
+    } finally {
+      accessButton.disabled = false;
+      accessButton.classList.remove("is-loading");
+      accessButton.querySelector("span").textContent = "Enter your gallery";
     }
+  });
+
+  leaveGalleryButton.addEventListener("click", () => {
+    if (hasUnsavedSelectionChanges() && !window.confirm("Your selection changes are not saved. Exit the gallery and discard them?")) return;
+    clearCurrentPage();
+    photos = [];
+    selected = new Set();
+    savedSelected = new Set();
+    sessionToken = "";
+    submittedAt = null;
+    resubmissionEnabled = false;
+    galleryScreen.hidden = true;
+    leaveGalleryButton.hidden = true;
+    accessScreen.hidden = false;
+    document.getElementById("access-code").value = "";
+    setStatus("Your gallery is locked. Enter your access code to return.");
+  });
+
+  function hasUnsavedSelectionChanges() {
+    return selected.size !== savedSelected.size || [...selected].some(photoId => !savedSelected.has(photoId));
+  }
+
+  saveSelectionsButton.addEventListener("click", saveSelectionChanges);
+  window.addEventListener("beforeunload", event => {
+    if (!hasUnsavedSelectionChanges()) return;
+    event.preventDefault();
+    event.returnValue = "";
   });
 
   photoSearch.addEventListener("input", renderGallery);
   photoSort.addEventListener("change", renderGallery);
+  paginationBars.forEach(pagination => pagination.addEventListener("click", event => {
+    const button = event.target.closest("button");
+    if (!button || !pagination.contains(button)) return;
+    if (button.dataset.pageAction === "previous") changeGalleryPage(pageIndex - 1);
+    else if (button.dataset.pageAction === "next") changeGalleryPage(pageIndex + 1);
+    else if (button.dataset.page !== undefined) changeGalleryPage(Number(button.dataset.page));
+  }));
 
   document.getElementById("viewer-close").addEventListener("click", () => viewer.close());
   document.getElementById("viewer-previous").addEventListener("click", () => moveViewer(-1));
@@ -422,6 +534,7 @@
   });
 
   submitButton.addEventListener("click", async () => {
+    if (hasUnsavedSelectionChanges()) return setStatus("Save your selection changes before submitting.", "error");
     if (pendingSaves > 0) return setStatus("Wait for photo changes to finish saving before submitting.", "error");
     if (!selected.size) return setStatus("Select at least one photo before sending your selection.", "error");
     const confirmed = await confirmSubmission();

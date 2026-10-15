@@ -25,8 +25,10 @@ import {
   const projectTable = $(".project-table");
   const projectsPanel = $("#projects-panel");
   const projectCount = $("#project-count");
+  const projectsPaginationBars = [...document.querySelectorAll("[data-project-pagination]")];
   const emptyProjects = $("#empty-projects");
   const createdDialog = $("#created-dialog");
+  const projectDialog = $("#project-dialog");
   const confirmDialog = $("#confirm-dialog");
   const emailLoginButton = loginForm.querySelector("button[type=submit]");
   let workerUrl = (config.workerUrl || "").replace(/\/$/, "");
@@ -38,8 +40,10 @@ import {
   let adminToken = "";
   let signedInEmail = "";
   let projectsCache = [];
+  let projectsPage = 0;
+  const projectsPageSize = 10;
+  let editingProjectId = null;
   let projectsLoaded = false;
-  let refreshTimer = null;
   let sortColumn = "updated";
   let sortDirection = "desc";
   let statusTimer;
@@ -94,6 +98,8 @@ import {
 
   function setStatus(message, type = "") {
     clearTimeout(statusTimer);
+    const activeDialog = document.querySelector("dialog[open]");
+    (activeDialog || document.body).append(status);
     status.textContent = message;
     status.className = `toast-status ${type}`.trim();
     if (message) statusTimer = window.setTimeout(() => {
@@ -101,6 +107,10 @@ import {
       status.className = "toast-status";
     }, 5000);
   }
+
+  [createdDialog, confirmDialog].forEach(dialog => dialog.addEventListener("close", () => {
+    if (status.parentElement === dialog) document.body.append(status);
+  }));
 
   async function api(path, options = {}) {
     const headers = { "Content-Type": "application/json", ...(options.headers || {}) };
@@ -158,7 +168,7 @@ import {
       projectsPanel.setAttribute("aria-busy", "true");
       projectCount.textContent = "Loading…";
       emptyProjects.hidden = true;
-      projectsElement.innerHTML = '<tr class="loading-row"><td colspan="8"><span class="loading-spinner" aria-hidden="true"></span><span>Loading project details…</span></td></tr>';
+      projectsElement.innerHTML = '<tr class="loading-row"><td colspan="9"><span class="loading-spinner" aria-hidden="true"></span><span>Loading project details…</span></td></tr>';
     }
     try {
       const result = await api("/api/admin/projects");
@@ -202,7 +212,7 @@ import {
           : statusFilter === "locked"
             ? project.status === "locked"
             : !project.submittedAt && project.status !== "locked");
-      const text = `${project.projectName} ${project.clientName} ${project.id}`.toLocaleLowerCase();
+      const text = `${project.projectName} ${project.clientName} ${project.clientPhone || ""} ${project.id}`.toLocaleLowerCase();
       return statusMatches && text.includes(search);
     });
     const select = $("#project-sort").value;
@@ -225,12 +235,21 @@ import {
     updateSummary();
     const matches = sortedProjects(projectsCache);
     projectCount.textContent = `${matches.length} of ${projectsCache.length} projects`;
+    const pageCount = Math.max(1, Math.ceil(matches.length / projectsPageSize));
+    projectsPage = Math.min(projectsPage, pageCount - 1);
+    const firstProject = projectsPage * projectsPageSize;
+    const visibleProjects = matches.slice(firstProject, firstProject + projectsPageSize);
+    projectsPaginationBars.forEach(pagination => {
+      pagination.hidden = matches.length === 0;
+      const pageButtons = Array.from({ length: pageCount }, (_, index) => `<button class="projects-page-number${index === projectsPage ? " is-current" : ""}" type="button" data-project-page="${index}" aria-label="Page ${index + 1}"${index === projectsPage ? ' aria-current="page"' : ""}>${index + 1}</button>`).join("");
+      pagination.innerHTML = `<button class="projects-page-previous" type="button" data-project-action="previous" aria-label="Previous page"${projectsPage === 0 ? " disabled" : ""}>← <span>Previous</span></button><div class="projects-page-numbers" aria-live="polite">${pageButtons}</div><button class="projects-page-next" type="button" data-project-action="next" aria-label="Next page"${projectsPage >= pageCount - 1 ? " disabled" : ""}><span>Next</span> →</button>`;
+    });
     emptyProjects.hidden = matches.length > 0;
     if (!projectsCache.length) $("#empty-projects h3").textContent = "No projects yet";
     else $("#empty-projects h3").textContent = "No matching projects";
     $("#empty-projects p").textContent = projectsCache.length ? "Try changing your search or status filter." : "Create your first gallery to see it listed here.";
 
-    for (const project of matches) {
+    for (const project of visibleProjects) {
       const row = document.createElement("tr");
       const nameCell = document.createElement("td");
       nameCell.dataset.col = "project";
@@ -240,6 +259,17 @@ import {
       const client = document.createElement("span");
       client.textContent = project.clientName || "Client name unavailable";
       nameCell.append(name, client);
+
+      const phoneCell = document.createElement("td");
+      phoneCell.dataset.col = "phone";
+      if (project.clientPhone) {
+        const phoneLink = document.createElement("a");
+        phoneLink.href = `tel:${project.clientPhone.replace(/[^\d+]/g, "")}`;
+        phoneLink.textContent = project.clientPhone;
+        phoneCell.append(phoneLink);
+      } else {
+        phoneCell.textContent = "—";
+      }
 
       const idCell = document.createElement("td");
       idCell.dataset.col = "projectId";
@@ -262,22 +292,7 @@ import {
       const limitCell = document.createElement("td");
       limitCell.className = "limit-cell";
       limitCell.dataset.col = "limit";
-      const limitValue = document.createElement("span");
-      limitValue.textContent = project.selectionLimit ? `${project.selectionLimit} max` : "Unlimited";
-      const limitEditor = document.createElement("div");
-      limitEditor.className = "limit-editor";
-      limitEditor.hidden = true;
-      const limitInput = document.createElement("input");
-      limitInput.type = "number";
-      limitInput.min = "1";
-      limitInput.max = "1000";
-      limitInput.step = "1";
-      limitInput.placeholder = "Unlimited";
-      limitInput.value = project.selectionLimit || "";
-      limitInput.dataset.limitInput = project.id;
-      const saveLimit = makeButton("Save", "mini-button", "saveLimit", project.id);
-      limitEditor.append(limitInput, saveLimit);
-      limitCell.append(limitValue, makeButton("Edit", "text-button", "editLimit", project.id, "edit"), limitEditor);
+      limitCell.textContent = project.selectionLimit ? `${project.selectionLimit} max` : "Unlimited";
 
       const selectedCell = document.createElement("td");
       selectedCell.className = "selected-cell";
@@ -332,8 +347,9 @@ import {
         else actionMenu.showPopover();
       });
       actionMenu.append(
+        makeButton("Edit project", "action-button", "editProject", project.id, "edit"),
         makeButton("CSV", "action-button download-action", "downloadProject", project.id, "download"),
-        makeButton("New code", "action-button", "reissueCode", project.id, "lock"),
+        makeButton("New code", "action-button", "reissueCode", project.id, "key-refresh"),
         makeButton(project.status === "locked" ? "Unlock" : "Lock", "action-button", "toggleProjectLock", project.id, project.status === "locked" ? "unlock" : "lock"),
         makeButton("Delete", "action-button delete-action", "deleteProject", project.id, "trash"),
       );
@@ -349,7 +365,7 @@ import {
         actionMenu.append(reopenButton);
       }
       actionsCell.append(actionTrigger, actionMenu);
-      row.append(nameCell, idCell, dateCell, photoCell, limitCell, selectedCell, submissionCell, actionsCell);
+      row.append(nameCell, phoneCell, idCell, dateCell, photoCell, limitCell, selectedCell, submissionCell, actionsCell);
       projectsElement.append(row);
     }
     applyColumnVisibility();
@@ -416,7 +432,7 @@ import {
   }
 
   function projectLink(projectId) {
-    const link = new URL("/select/worker-poc.html", window.location.origin);
+    const link = new URL("/select", window.location.origin);
     link.searchParams.set("project", projectId);
     return link.toString();
   }
@@ -453,10 +469,6 @@ import {
     await loadProjects();
     loginStatus.textContent = "";
     setStatus("Signed in. Your project list is up to date.", "success");
-    if (refreshTimer) clearInterval(refreshTimer);
-    refreshTimer = window.setInterval(() => {
-      if (document.visibilityState === "visible" && adminToken) loadProjects().catch(error => setStatus(error.message, "error"));
-    }, 60000);
   }
 
   async function restoreOrValidateAdmin(user) {
@@ -588,7 +600,6 @@ import {
     signedInEmail = "";
     projectsCache = [];
     projectsLoaded = false;
-    if (refreshTimer) clearInterval(refreshTimer);
     adminApp.hidden = true;
     loginScreen.hidden = false;
     loginStatus.textContent = "Signing out…";
@@ -611,9 +622,18 @@ import {
     catch (error) { setStatus(error.message, "error"); }
     finally { button.disabled = false; }
   });
-  $("#project-search").addEventListener("input", renderProjects);
-  $("#project-status-filter").addEventListener("change", renderProjects);
-  $("#project-sort").addEventListener("change", renderProjects);
+  $("#project-search").addEventListener("input", () => { projectsPage = 0; renderProjects(); });
+  $("#project-status-filter").addEventListener("change", () => { projectsPage = 0; renderProjects(); });
+  $("#project-sort").addEventListener("change", () => { projectsPage = 0; renderProjects(); });
+  projectsPaginationBars.forEach(pagination => pagination.addEventListener("click", event => {
+    const button = event.target.closest("button");
+    if (!button || !pagination.contains(button)) return;
+    if (button.dataset.projectAction === "previous") projectsPage -= 1;
+    else if (button.dataset.projectAction === "next") projectsPage += 1;
+    else if (button.dataset.projectPage !== undefined) projectsPage = Number(button.dataset.projectPage);
+    else return;
+    renderProjects();
+  }));
 
   document.querySelectorAll(".sort-button").forEach(button => button.addEventListener("click", () => {
     const column = button.dataset.sort;
@@ -623,6 +643,7 @@ import {
     else { sortColumn = column; sortDirection = defaults[column] || "desc"; }
     const options = { project: { asc: "name-asc", desc: "name-desc" }, created: { asc: "created-asc", desc: "created-desc" }, photos: { asc: "photos-asc", desc: "photos-desc" }, selected: { asc: "selected-asc", desc: "selected-desc" } };
     select.value = options[column]?.[sortDirection] || "updated-desc";
+    projectsPage = 0;
     renderProjects();
   }));
 
@@ -631,21 +652,19 @@ import {
     if (!button) return;
     if (button === button.closest(".actions-cell")?.querySelector(".project-actions-trigger")) return;
     button.closest(".project-actions-menu")?.hidePopover();
-    const id = button.dataset.downloadProject || button.dataset.editLimit || button.dataset.saveLimit || button.dataset.reissueCode || button.dataset.enableResubmission || button.dataset.toggleProjectLock || button.dataset.deleteProject;
-    if (button.dataset.editLimit) {
-      const editor = button.parentElement.querySelector(".limit-editor");
-      editor.hidden = !editor.hidden;
-      if (!editor.hidden) editor.querySelector("input").focus();
-      return;
-    }
-    if (button.dataset.saveLimit) {
-      const input = projectsElement.querySelector(`[data-limit-input="${CSS.escape(id)}"]`);
-      button.disabled = true;
-      try {
-        const result = await api(`/api/admin/projects/${encodeURIComponent(id)}/selection-limit`, { method: "PATCH", body: JSON.stringify({ selectionLimit: input.value || null }) });
-        await loadProjects();
-        setStatus(result.selectionLimit ? `Selection limit set to ${result.selectionLimit}.` : "Selection limit removed.", "success");
-      } catch (error) { setStatus(error.message, "error"); button.disabled = false; }
+    const id = button.dataset.downloadProject || button.dataset.editProject || button.dataset.reissueCode || button.dataset.enableResubmission || button.dataset.toggleProjectLock || button.dataset.deleteProject;
+    if (button.dataset.editProject) {
+      const project = projectsCache.find(item => item.id === id);
+      if (!project) return;
+      editingProjectId = id;
+      $("#project-dialog-title").textContent = "Edit project";
+      $("#save-project").textContent = "Save changes";
+      $("#client-name").value = project.clientName || "";
+      $("#client-phone").value = project.clientPhone || "";
+      $("#project-name").value = project.projectName || "";
+      $("#drive-folder").value = project.driveFolderId || "";
+      $("#selection-limit").value = project.selectionLimit || "";
+      projectDialog.showModal();
       return;
     }
     if (button.dataset.reissueCode) {
@@ -732,26 +751,54 @@ import {
     }
   });
 
+  $("#open-project-dialog").addEventListener("click", () => {
+    editingProjectId = null;
+    $("#project-dialog-title").textContent = "Create a project";
+    $("#save-project").textContent = "Create private gallery";
+    $("#project-form").reset();
+    projectDialog.showModal();
+  });
+  $("#close-project-dialog").addEventListener("click", () => projectDialog.close());
+  $("#cancel-project-dialog").addEventListener("click", () => projectDialog.close());
+  projectDialog.addEventListener("click", event => {
+    if (event.target === projectDialog) projectDialog.close();
+  });
+
   $("#project-form").addEventListener("submit", async event => {
     event.preventDefault();
     const button = event.currentTarget.querySelector("button[type=submit]");
     button.disabled = true;
-    setStatus("Checking the Drive folder and creating the gallery…");
+    const isEditing = Boolean(editingProjectId);
+    const projectId = editingProjectId;
+    const projectDetails = {
+      clientName: $("#client-name").value,
+      clientPhone: $("#client-phone").value,
+      projectName: $("#project-name").value,
+      driveFolder: $("#drive-folder").value,
+      selectionLimit: $("#selection-limit").value || null,
+    };
+    setStatus(isEditing ? "Saving project changes…" : "Checking the Drive folder and creating the gallery…");
     try {
-      const result = await api("/api/admin/projects", { method: "POST", body: JSON.stringify({
-        clientName: $("#client-name").value,
-        projectName: $("#project-name").value,
-        driveFolder: $("#drive-folder").value,
-        selectionLimit: $("#selection-limit").value || null,
-      }) });
-      $("#client-link").value = result.clientUrl;
+      const result = await api(isEditing ? `/api/admin/projects/${encodeURIComponent(projectId)}` : "/api/admin/projects", {
+        method: isEditing ? "PUT" : "POST",
+        body: JSON.stringify(projectDetails),
+      });
+      if (isEditing) {
+        projectDialog.close();
+        editingProjectId = null;
+        await loadProjects();
+        setStatus("Project details updated.", "success");
+        return;
+      }
+      $("#client-link").value = projectLink(result.project.id);
       $("#client-code").value = result.clientCode;
       $("#client-access-title").textContent = `${result.project.clientName} · ${result.project.projectName}`;
       createdDialog.showModal();
-      event.currentTarget.reset();
-      event.currentTarget.closest("details").open = false;
-      await loadProjects();
       setStatus("Gallery created. Copy the one-time client access code now.", "success");
+      event.currentTarget.reset();
+      projectDialog.close();
+      projectsPage = 0;
+      await loadProjects();
     } catch (error) { setStatus(error.message, "error"); }
     finally { button.disabled = false; }
   });

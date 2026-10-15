@@ -34,3 +34,44 @@
 .actions-cell{position:relative;display:table-cell!important;text-align:center}.project-actions-trigger{width:36px;height:36px;display:inline-grid;place-items:center;border:1px solid var(--line);border-radius:8px;background:#fff;color:#625d55;transition:background .15s,border-color .15s,color .15s}.project-actions-trigger:hover,.project-actions-trigger[aria-expanded=true]{border-color:#cbb493;background:#faf7f2;color:var(--accent-dark)}.project-actions-trigger .icon{width:19px;height:19px}.project-actions-menu{position:fixed;inset:auto;margin:0;width:190px;padding:6px;overflow:visible;border:1px solid var(--line);border-radius:9px;background:#fff;box-shadow:0 12px 35px #29251f24;z-index:100}.project-actions-menu:popover-open{display:grid;gap:3px}.project-actions-menu .action-button{width:100%;height:38px;justify-content:flex-start;padding:0 10px;border-color:transparent;border-radius:6px;background:transparent;color:#514d46;font-size:12px;text-align:left}.project-actions-menu .action-button:hover:not(:disabled){border-color:#f0ede8;background:#faf8f5}.project-actions-menu .action-button .icon{width:16px;height:16px}.project-actions-menu .download-action{color:#765b37}.project-actions-menu .delete-action{color:#a34238}.project-actions-menu .delete-action:hover:not(:disabled){border-color:#f0ddda;background:#fff8f7}.project-actions-menu .reopen-action,.project-actions-menu .reopened-action{color:#63789a}.project-actions-menu .reopened-action{opacity:.6}
 .photography-link{color:var(--ink);font-family:"Playfair Display",Georgia,serif;font-size:21px;font-weight:600;letter-spacing:.01em}.photography-link:hover{color:var(--accent-dark)}.dashboard{padding-top:12px}.summary-grid{margin-top:0}@media(max-width:800px){.dashboard{padding-top:10px}}
 .dashboard{padding-bottom:16px}
+#status.toast-status{top:50%;right:auto;bottom:auto;left:50%;z-index:2147483647;transform:translate(-50%,-50%);width:max-content;max-width:min(460px,calc(100vw - 36px));text-align:center}
+#status.toast-status{top:auto;bottom:24px;transform:translateX(-50%)}
+#status.toast-status:not(:empty){padding:14px 20px;border-radius:9px;box-shadow:0 18px 55px #17120d30}
+.login-brand,.app-brand{gap:12px}
+.login-brand .brand-logo,.app-brand .brand-logo{display:block;flex:0 0 58px;width:58px;height:58px;padding:4px;object-fit:contain;border-radius:8px;background:#fff}
+.login-brand strong,.app-brand strong{font-family:"Barlow Condensed",Arial,sans-serif;font-size:22px;font-weight:400;letter-spacing:.5px;line-height:1;text-transform:uppercase}
+.login-brand small,.app-brand small{margin-top:5px;color:#f17627;font-size:9px;font-weight:300;letter-spacing:4px;line-height:1.2;text-transform:uppercase}
+@media(max-width:560px){.app-brand{gap:8px}.app-brand .brand-logo{flex-basis:42px;width:42px;height:42px}.app-brand strong{font-size:17px}.app-brand small{margin-top:3px;font-size:7px;letter-spacing:3px}}
+.projects-pagination{min-height:66px;display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0;padding:12px 22px}
+.projects-pagination-top{border-bottom:1px solid var(--line)}
+.projects-pagination-bottom{border-top:1px solid var(--line)}
+.projects-pagination button{height:40px;min-width:40px;padding:0 13px;border:1px solid #e3ded5;border-radius:3px;background:#fff;color:#5c574e;font:600 11px "DM Sans",Arial,sans-serif;cursor:pointer;transition:background .18s,border-color .18s,color .18s,transform .18s}
+.projects-pagination button:hover:not(:disabled){transform:translateY(-1px);border-color:#cbb493;color:var(--accent-dark)}
+.projects-pagination button:disabled{opacity:.48;cursor:not-allowed}
+.projects-pagination .projects-page-previous,.projects-pagination .projects-page-next{display:flex;align-items:center;gap:8px}
+@media(max-width:560px){.projects-pagination{padding:12px;gap:10px}}
+.projects-page-numbers{display:flex;align-items:center;justify-content:center;gap:6px}
+.projects-pagination button.projects-page-number{min-width:40px;padding:0 10px}
+.projects-pagination button.projects-page-number.is-current{border-color:var(--ink);background:var(--ink);color:#fff}
+@media(max-width:560px){.projects-pagination{min-height:58px;padding:10px 12px;gap:6px}.projects-pagination button{height:36px;min-width:34px;padding:0 8px}.projects-pagination .projects-page-numbers{gap:4px}.projects-pagination button.projects-page-number{min-width:34px;padding:0 7px}.projects-pagination .projects-page-previous,.projects-pagination .projects-page-next{gap:5px}}
+@media(max-width:360px){.projects-pagination button span{display:none}.projects-pagination .projects-page-numbers{gap:2px}.projects-pagination button.projects-page-number{min-width:31px;padding:0 5px}}
+.project-dialog{width:min(680px,calc(100% - 28px));max-width:680px}
+.project-dialog-card{padding:25px 28px 27px}
+.project-dialog .create-form{padding:19px 0 0;gap:14px 16px}
+.project-dialog .create-form>label{margin:0}
+.project-dialog .create-form input{height:43px}
+.project-dialog-actions{grid-column:1/-1;display:flex;justify-content:flex-end;gap:9px;padding-top:5px}
+.project-dialog-actions .outline-button,.project-dialog-actions .primary-button{min-height:41px}
+.toolbar>#open-project-dialog{height:39px;min-height:39px;flex:none;white-space:nowrap}
+@media(max-width:560px){.project-dialog-card{padding:20px 17px}.project-dialog .create-form{grid-template-columns:1fr}.project-dialog-actions{grid-column:1}.toolbar>#open-project-dialog{padding:0 9px;font-size:10px}}
+.toolbar{flex-wrap:wrap;row-gap:10px}
+.search-box{flex:1 1 280px;max-width:none}
+.filter-select{flex:0 1 auto;white-space:nowrap}
+.filter-select select{min-width:110px}
+.column-picker,.toolbar>#open-project-dialog,.toolbar>#refresh-projects{flex:none;white-space:nowrap}
+@media(max-width:800px){.search-box{flex-basis:100%}.filter-select{flex:1 1 180px}.filter-select select{min-width:0;flex:1}}
+@media(max-width:560px){.toolbar{gap:8px;row-gap:9px}.filter-select{min-width:0}.filter-select select{max-width:unset}.column-picker{margin-left:auto}.toolbar>#open-project-dialog,.toolbar>#refresh-projects{height:38px;min-height:38px}}
+.admin-site-footer{min-height:68px;padding:22px 24px;border-top:1px solid var(--line);background:var(--paper);color:var(--muted);text-align:center}
+.admin-site-footer p{margin:0;font-size:12px}
+@media(max-width:560px){.admin-site-footer{min-height:58px;padding:17px 12px}.admin-site-footer p{font-size:10px}}
+button:disabled{cursor:not-allowed}

@@ -21,11 +21,19 @@ const contentTypes = {
 
 http.createServer((request, response) => {
   let pathname;
+  let requestUrl;
   try {
-    pathname = decodeURIComponent(new URL(request.url, "http://localhost").pathname);
+    requestUrl = new URL(request.url, "http://localhost");
+    pathname = decodeURIComponent(requestUrl.pathname);
   } catch {
     response.writeHead(400);
     response.end("Bad request");
+    return;
+  }
+
+  if (pathname === "/select/worker-poc.html" || pathname === "/select/" || pathname === "/select/index.html") {
+    response.writeHead(302, { Location: `/select${requestUrl.search}` });
+    response.end();
     return;
   }
 
@@ -33,7 +41,16 @@ http.createServer((request, response) => {
     ? "index.html"
     : /^\/admin\/?$/.test(pathname)
       ? "select/admin.html"
-      : pathname.replace(/^\/+/, "");
+      : pathname === "/select" && requestUrl.searchParams.has("project")
+        ? "select/worker-poc.html"
+        : pathname === "/select" || pathname === "/select/index.html"
+          ? null
+        : pathname.replace(/^\/+/, "");
+  if (!relativePath) {
+    response.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
+    response.end("Not found");
+    return;
+  }
   let filePath = path.resolve(root, relativePath);
   if (filePath !== root && !filePath.startsWith(root + path.sep)) {
     response.writeHead(403);
