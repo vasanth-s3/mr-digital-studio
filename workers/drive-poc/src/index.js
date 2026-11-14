@@ -248,7 +248,7 @@ async function createProject(request, env, cors) {
     body: JSON.stringify({ writes }),
   });
   if (!commitResponse.ok) throw await firestoreError(commitResponse);
-  const clientUrl = new URL(`${env.ALLOWED_ORIGIN.replace(/\/$/, "")}/select`);
+  const clientUrl = new URL(`${env.CLIENT_GALLERY_ORIGIN.replace(/\/$/, "")}/select`);
   clientUrl.searchParams.set("project", projectId);
   return json({ project: { id: projectId, clientName, clientPhone, projectName, driveFolderName: folder.name, createdAt, selectionLimit }, clientCode, clientUrl: clientUrl.toString() }, 201, { ...cors, "Cache-Control": "no-store" });
 }
@@ -705,7 +705,7 @@ function corsHeaders(request, env) {
   const origin = request.headers.get("Origin");
   const allowedOrigins = (env.ALLOWED_ORIGINS || env.ALLOWED_ORIGIN || "").split(",").map(value => value.trim()).filter(Boolean);
   if (!origin || !allowedOrigins.includes(origin)) return {};
-  return { "Access-Control-Allow-Origin": origin, "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, OPTIONS", "Access-Control-Allow-Headers": "Authorization, Content-Type", "Vary": "Origin" };
+  return { "Access-Control-Allow-Origin": origin, "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS", "Access-Control-Allow-Headers": "Authorization, Content-Type", "Vary": "Origin" };
 }
 
 function assertConfigured(env) {
@@ -713,6 +713,7 @@ function assertConfigured(env) {
     if (!env[name]) throw new Error(`Missing Worker setting: ${name}`);
   }
   if (!env.ALLOWED_ORIGINS && !env.ALLOWED_ORIGIN) throw new Error("Missing Worker setting: ALLOWED_ORIGINS");
+  if (!env.CLIENT_GALLERY_ORIGIN) throw new Error("Missing Worker setting: CLIENT_GALLERY_ORIGIN");
 }
 
 function firestoreDocumentUrl(path, env) {

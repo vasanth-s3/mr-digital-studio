@@ -786,19 +786,27 @@ import {
       if (isEditing) {
         projectDialog.close();
         editingProjectId = null;
-        await loadProjects();
         setStatus("Project details updated.", "success");
+        try {
+          await loadProjects();
+        } catch (refreshError) {
+          setStatus(`Project details were saved, but the list could not refresh: ${refreshError.message}`, "error");
+        }
         return;
       }
       $("#client-link").value = projectLink(result.project.id);
       $("#client-code").value = result.clientCode;
       $("#client-access-title").textContent = `${result.project.clientName} · ${result.project.projectName}`;
-      createdDialog.showModal();
-      setStatus("Gallery created. Copy the one-time client access code now.", "success");
       event.currentTarget.reset();
       projectDialog.close();
+      createdDialog.showModal();
+      setStatus("Gallery created. Copy the one-time client access code now.", "success");
       projectsPage = 0;
-      await loadProjects();
+      try {
+        await loadProjects();
+      } catch (refreshError) {
+        setStatus(`Gallery created successfully, but the project list could not refresh: ${refreshError.message}`, "error");
+      }
     } catch (error) { setStatus(error.message, "error"); }
     finally { button.disabled = false; }
   });
